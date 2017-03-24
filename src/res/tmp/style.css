@@ -1,0 +1,24 @@
+.button-raised{
+-fx-font-size: 16px;
+-jfx-button-type: RAISED;
+-fx-background-color: rgb(77,102,204);
+-fx-text-fill: WHITE;
+}
+
+.button-raised-2{
+	-fx-font-size: 20px;
+-jfx-button-type: RAISED;
+-fx-background-color: rgb(102,204,77);
+-fx-text-fill: WHITE;
+}
+
+.jfx-hamburger-icon{
+-fx-spacing: 5;
+-fx-cursor: hand;
+}
+.jfx-hamburger-icon{
+-fx-pref-width: 40px;
+-fx-pref-height: 7px;
+-fx-background-color : #D63333;
+-fx-background-radius : 5px;
+}
