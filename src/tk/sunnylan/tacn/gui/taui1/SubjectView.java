@@ -98,12 +98,22 @@ public class SubjectView extends Scene {
 			sectionColumn.setOnEditCommit((CellEditEvent<AssignmentWrapper, String> t) -> {
 				AssignmentWrapper wr = ((AssignmentWrapper) t.getTreeTableView()
 						.getTreeItem(t.getTreeTablePosition().getRow()).getValue());
+
+				if (t.getNewValue().isEmpty()) {
+					wr.a.clearMark(section);
+				} else if (!wr.a.containsMark(section))
+					try {
+						wr.a.addMark(new Mark(0, 0, 0), section);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				if (!Parse.parseMark(wr.a.getMark(section), t.getNewValue())) {
 					if (!Parse.parseMark(wr.a.getMark(section), t.getOldValue())) {
 						wr.a.clearMark(section);
 					}
 				}
-				sum.refresh();
+				refresh();
 			});
 
 			sectionColumn.setPrefWidth(150);
