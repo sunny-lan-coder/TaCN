@@ -1,10 +1,14 @@
 package tk.sunnylan.tacn.gui.taui1;
 
 import java.lang.reflect.Field;
+import java.util.Map.Entry;
 
 import com.jfoenix.controls.JFXDrawer;
 
 import javafx.animation.Transition;
+import tk.sunnylan.tacn.parse.ChangeType;
+import tk.sunnylan.tacn.parse.SubjectChange;
+import tk.sunnylan.tacn.parse.Update;
 
 public class Util {
 	public static void antiAlias() {
@@ -23,5 +27,85 @@ public class Util {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	static final int DISP_MAX_LEN = 40;
+
+	public static String summarizeUpdates(Update u) {
+		if (u.updates.size() == 1 && u.additions.size() == 0) {
+			// should only loop once
+			for (Entry<String, SubjectChange> s : u.updates.entrySet()) {
+				return summarizeSubjectChange(s.getValue());
+			}
+		}
+		String out = "";
+		int cntleft = u.updates.size() + u.additions.size();
+		for (Entry<String, SubjectChange> f : u.updates.entrySet()) {
+			if (out.length() >= DISP_MAX_LEN)
+				break;
+			out += f.getKey();
+			cntleft--;
+			if (cntleft > 0)
+				out += ", ";
+		}
+		for (Entry<String, SubjectChange> f : u.additions.entrySet()) {
+			if (out.length() >= DISP_MAX_LEN)
+				break;
+			out += f.getKey();
+			cntleft--;
+			if (cntleft > 0)
+				out += ", ";
+		}
+		if (cntleft > 0)
+			out += "and " + p("other course", cntleft);
+		return out;
+	}
+
+	public static String summarizeSubjectChange(SubjectChange s) {
+		if (s.changes.size() == 1) {
+			for (Entry<String, ChangeType> f : s.changes.entrySet()) {
+				return f.getKey() + " " + f.getValue().toString();
+			}
+		}
+		String out = "";
+		int cntleft = s.changes.size();
+		for (Entry<String, ChangeType> f : s.changes.entrySet()) {
+			if (out.length() >= DISP_MAX_LEN)
+				break;
+			out += f.getKey();
+			cntleft--;
+			if (cntleft > 0)
+				out += ", ";
+		}
+		if (cntleft > 0)
+			out += "and " + p("other assignment", cntleft);
+		return out;
+	}
+
+	public static String summarizeUpdatesShort(Update u) {
+		if(u.updates.size() ==1 && u.additions.size() ==0){
+			for (Entry<String, SubjectChange> s : u.updates.entrySet()) {
+				return s.getKey() + " updated";
+			}
+		}
+		if(u.updates.size() ==0 && u.additions.size() ==1){
+			for (Entry<String, SubjectChange> s : u.additions.entrySet()) {
+				return s.getKey() + " available";
+			}
+		}
+		if (u.updates.size() > 0) {
+			return "Marks updated";
+		}
+		if (u.additions.size() > 0) {
+			return "New marks available";
+		}
+		return "Tyanide";
+	}
+
+	// pluralise function
+	private static String p(String s, int num) {
+		if (num != 1)
+			s += "s";
+		return num + " " + s;
 	}
 }

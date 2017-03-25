@@ -55,7 +55,6 @@ public class Subject {
 	public Iterator<Entry<String, Assignment>> getAssignmentIterator() {
 		return new Iterator<Entry<String, Assignment>>() {
 			private Iterator<Entry<String, Assignment>> wrap = assignments.entrySet().iterator();
-			private Entry<String, Assignment> s;
 
 			@Override
 			public boolean hasNext() {
@@ -64,7 +63,7 @@ public class Subject {
 
 			@Override
 			public Entry<String, Assignment> next() {
-				return s = wrap.next();
+				return  wrap.next();
 			}
 
 			@Override

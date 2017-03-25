@@ -15,6 +15,9 @@ public class Util {
 	}
 	
 	public static String convertMarkToString(Mark m){
+		if(m.getWeight()==0)
+			return String.format("%.1f/%.0f=%.0f%%%nno weight", m.getNumerator(),
+					m.getDenominator(), m.percentage(), m.getWeight());
 		return String.format("%.1f/%.0f=%.0f%%%nweight=%.0f", m.getNumerator(),
 				m.getDenominator(), m.percentage(), m.getWeight());
 	}

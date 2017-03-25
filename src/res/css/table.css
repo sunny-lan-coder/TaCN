@@ -4,7 +4,6 @@
 }
 .tree-table-view:focused .tree-table-row-cell:selected {
 -fx-background-color: -fx-tree-table-color;
--fx-table-cell-border-color: -fx-tree-table-color;
 }
 
 .tree-table-view:focused .tree-table-row-cell:selected .tree-table-cell{

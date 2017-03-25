@@ -8,6 +8,7 @@ import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -31,6 +32,10 @@ public class LoginController {
 	private JFXSpinner loadingSpinner;
 
 	public ILoginListener loginListener;
+	
+
+    @FXML
+    private Hyperlink linkCancel;
 
 	@FXML
 	public void initialize() {
@@ -83,6 +88,7 @@ public class LoginController {
 		btnLogin.setDisable(val);
 		txtPassword.setDisable(val);
 		txtStudentID.setDisable(val);
+		linkCancel.setDisable(val);
 		d = !val;
 	}
 
@@ -90,5 +96,10 @@ public class LoginController {
 	void keyPressed(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER && !btnLogin.isDisabled())
 			btnLogin.fire();
+	}
+
+	@FXML
+	void linkCancelClicked(ActionEvent event) {
+		loginListener.loginCancelled();
 	}
 }

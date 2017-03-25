@@ -32,7 +32,8 @@ public class Parse {
 		return page.getElementsByTagName("h2").get(0).getTextContent();
 	}
 
-	public static void parseSubject(HtmlPage page, Subject s) throws Exception {
+	public static SubjectChange parseSubject(HtmlPage page, Subject s) throws Exception {
+		SubjectChange changes = new SubjectChange();
 		DomNodeList<DomElement> tables = page.getElementsByTagName("table");
 		HtmlTable tableMarks = null;
 		HtmlTable tableWeights = null;
@@ -78,13 +79,19 @@ public class Parse {
 			if (name.isEmpty())
 				continue;
 			Assignment a;
+			boolean flag = false;
 			if (s.containsAssignment(name)) {
 				a = s.getAssignment(name);
 			} else {
 				a = new Assignment();
+				flag = true;
+				changes.changes.put(name, ChangeType.ADDED);
+
 			}
 
-			updateAssignment(tableMarks, i, a);
+			if (updateAssignment(tableMarks, i, a))
+				if (!flag)
+					changes.changes.put(name, ChangeType.UPDATED);
 
 			if (!s.containsAssignment(name)) {
 				s.addAssignment(name, a);
@@ -98,8 +105,10 @@ public class Parse {
 		Entry<String, Assignment> curr;
 		while (it.hasNext()) {
 			curr = it.next();
-			if (!additions.contains(curr.getKey()))
+			if (!additions.contains(curr.getKey())) {
+				changes.changes.put(curr.getKey(), ChangeType.REMOVED);
 				it.remove();
+			}
 		}
 
 		if (tableWeights != null) {
@@ -115,9 +124,11 @@ public class Parse {
 				s.weights.put(Util.sanitizeSectionName(tableWeights.getCellAt(i, WEIGHTTABLE_NAME_COL).asText()), val);
 			}
 		}
+		return changes;
 	}
 
-	private static void updateAssignment(HtmlTable table, int row, Assignment a) throws Exception {
+	private static boolean updateAssignment(HtmlTable table, int row, Assignment a) throws Exception {
+		boolean changed = false;
 		// compare for additions
 		HashSet<String> additions = new HashSet<>();
 		List<HtmlTableCell> cells = table.getRow(row).getCells();
@@ -135,18 +146,21 @@ public class Parse {
 				String text = cell.getTextContent();
 
 				Mark m;
-				boolean res;
+				MarkChange res;
 				if (a.containsMark(s)) {
 					m = a.getMark(s);
-					res = parseMark(m, text);
+
+					res = _parseMark(m, text);
+
+					changed |= res.changed;
 				} else {
 					m = new Mark(0, 0, 0);
-					res = parseMark(m, text);
+					res = _parseMark(m, text);
 					a.addMark(m, s);
+					changed = true;
 				}
-				if (res)
+				if (res.output)
 					additions.add(s);
-
 			}
 		}
 
@@ -156,20 +170,36 @@ public class Parse {
 		while (it.hasNext()) {
 			curr = it.next();
 			if (!additions.contains(curr.getKey())) {
+				changed = true;
 				it.remove();
 			}
 		}
+		a.timeCode = row;
+
+		return changed;
 	}
 
 	public static boolean parseMark(Mark m, String text) {
+		return _parseMark(m, text).output;
+
+	}
+
+	private static MarkChange _parseMark(Mark m, String text) {
+		boolean changed = false;
 		try {
 			String[] tmp1 = text.split("/");
 			String[] tmp2 = tmp1[1].split("=");
 			String x = tmp1[0].trim();
 			String y = tmp2[0].trim();
 
-			double num;
 			double weight;
+			if (text.contains("no")) {
+				weight = 0;
+			} else {
+				weight = Double
+						.parseDouble(text.substring(text.indexOf(WEIGHT_KEYWORD) + WEIGHT_KEYWORD.length()).trim());
+			}
+			double num;
 			if (x.isEmpty()) {
 				num = 0;
 				weight = 0;
@@ -185,20 +215,30 @@ public class Parse {
 				den = Double.parseDouble(y);
 			}
 
-			if (text.contains("no")) {
-				weight = 0;
-			} else {
-				weight = Double
-						.parseDouble(text.substring(text.indexOf(WEIGHT_KEYWORD) + WEIGHT_KEYWORD.length()).trim());
-			}
-
+			if (m.getDenominator() != den)
+				changed = true;
+			if (m.getNumerator() != num)
+				changed = true;
+			if (m.getWeight() != weight)
+				changed = true;
 			m.updateNumerator(num);
 			m.updateDenominator(den);
 			m.updateWeight(weight);
 		} catch (Exception ex) {
-			return false;
+			return new MarkChange(false, changed);
 		}
-		return true;
+		return new MarkChange(true, changed);
 
 	}
+
+	private static class MarkChange {
+		public final boolean output;
+		public final boolean changed;
+
+		public MarkChange(boolean output, boolean changed) {
+			this.output = output;
+			this.changed = changed;
+		}
+	}
+
 }

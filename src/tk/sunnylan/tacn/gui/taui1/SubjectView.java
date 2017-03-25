@@ -13,10 +13,12 @@ import com.jfoenix.controls.cells.editors.TextFieldEditorBuilder;
 import com.jfoenix.controls.cells.editors.base.GenericEditableTreeTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -35,6 +37,7 @@ public class SubjectView extends Scene {
 	public final JFXToggleButton toggleSummary;
 	private SummaryView sum;
 	private Subject subject;
+	private SubjectViewController controller;
 
 	public static SubjectView getNewSubjectView(Subject subject) throws IOException {
 		FXMLLoader mahLoader = new FXMLLoader(TAUI1.class.getResource("SubjectView.fxml"));
@@ -43,7 +46,7 @@ public class SubjectView extends Scene {
 
 	public SubjectView(Parent root, SubjectViewController controller, Subject subject) {
 		super(root);
-
+this.controller=controller;
 		try {
 			sum = SummaryView.getNewScene(subject);
 		} catch (IOException e1) {
@@ -67,6 +70,19 @@ public class SubjectView extends Scene {
 
 	private void initMarkTable(SubjectViewController controller, Subject subject) {
 		this.subject = subject;
+		JFXTreeTableColumn<AssignmentWrapper, Integer> timecodeColumn = new JFXTreeTableColumn<>("#");
+
+		timecodeColumn.setCellValueFactory((CellDataFeatures<AssignmentWrapper, Integer> param) -> {
+			if (timecodeColumn.validateValue(param))
+				return new SimpleIntegerProperty(param.getValue().getValue().a.timeCode).asObject();
+			else
+				return timecodeColumn.getComputedValue(param);
+		});
+		timecodeColumn.setPrefWidth(50);
+		timecodeColumn.setSortable(true);
+		controller.tableMarks.getColumns().add(timecodeColumn);
+		controller.tableMarks.getSortOrder().add(timecodeColumn);
+
 		JFXTreeTableColumn<AssignmentWrapper, String> assignmentColumn = new JFXTreeTableColumn<>("Assignment");
 
 		assignmentColumn.setCellValueFactory((CellDataFeatures<AssignmentWrapper, String> param) -> {
@@ -120,12 +136,9 @@ public class SubjectView extends Scene {
 			sectionColumn.getStyleClass().add("centercol");
 			controller.tableMarks.getColumns().add(sectionColumn);
 		}
+
+		
 		refresh();
-
-		TreeItem<AssignmentWrapper> rootItem = new RecursiveTreeItem<AssignmentWrapper>(assignments,
-				RecursiveTreeObject::getChildren);
-		controller.tableMarks.setRoot(rootItem);
-
 	}
 
 	public void refresh() {
@@ -136,6 +149,14 @@ public class SubjectView extends Scene {
 			entry = f.next();
 			assignments.add(new AssignmentWrapper(entry.getValue(), entry.getKey()));
 		}
+		SortedList<AssignmentWrapper> sa = new SortedList<>(assignments);
+		sa.setComparator((AssignmentWrapper a1, AssignmentWrapper a2) -> {
+			return -Integer.compare(a1.a.timeCode, a2.a.timeCode);
+		});
+
+		TreeItem<AssignmentWrapper> rootItem = new RecursiveTreeItem<AssignmentWrapper>(sa,
+				RecursiveTreeObject::getChildren);
+		controller.tableMarks.setRoot(rootItem);
 		sum.refresh();
 	}
 

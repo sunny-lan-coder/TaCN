@@ -9,20 +9,22 @@ import org.w3c.dom.NodeList;
 
 public class Assignment {
 	private HashMap<String, Mark> marks;
+	public int timeCode;
 
 	public Assignment() {
 		marks = new HashMap<>();
 	}
-	
-	public Assignment(Element docroot){
+
+	public Assignment(Element docroot) {
 		this();
+		timeCode = Integer.parseInt(docroot.getElementsByTagName("timecode").item(0).getTextContent().trim());
 		NodeList l = docroot.getElementsByTagName("marks").item(0).getChildNodes();
-		for(int i=0;i<l.getLength();i++){
-			if(!(l.item(i) instanceof Element))
+		for (int i = 0; i < l.getLength(); i++) {
+			if (!(l.item(i) instanceof Element))
 				continue;
-			Element tmp=(Element) l.item(i);
-			String section=tmp.getElementsByTagName("section").item(0).getTextContent();
-			Mark m=new Mark((Element)tmp.getElementsByTagName("value").item(0));
+			Element tmp = (Element) l.item(i);
+			String section = tmp.getElementsByTagName("section").item(0).getTextContent();
+			Mark m = new Mark((Element) tmp.getElementsByTagName("value").item(0));
 			marks.put(section, m);
 		}
 	}
@@ -30,7 +32,6 @@ public class Assignment {
 	public Iterator<Entry<String, Mark>> getMarkIterator() {
 		return new Iterator<Entry<String, Mark>>() {
 			private Iterator<Entry<String, Mark>> wrap = marks.entrySet().iterator();
-			private Entry<String, Mark> s;
 
 			@Override
 			public boolean hasNext() {
@@ -39,7 +40,7 @@ public class Assignment {
 
 			@Override
 			public Entry<String, Mark> next() {
-				return s = wrap.next();
+				return wrap.next();
 			}
 
 			@Override
@@ -70,7 +71,10 @@ public class Assignment {
 
 	@Override
 	public String toString() {
-		String s = "<marks>";
+		String s = "<timecode>";
+		s += timeCode;
+		s += "</timecode>";
+		s += "<marks>";
 		for (String section : marks.keySet()) {
 			s += "<mark><section>" + section + "</section><value>" + marks.get(section).toString() + "</value></mark>";
 		}

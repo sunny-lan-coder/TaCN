@@ -20,7 +20,7 @@
 						<JFXHamburger fx:id="hamOpenMenu" nodeOrientation="LEFT_TO_RIGHT" onMousePressed="#handleHamburgerClick" prefHeight="40.0" prefWidth="25.0" BorderPane.alignment="CENTER" />
 					</left>
 					<center>
-						<Label fx:id="lblSessionName" text="Label" BorderPane.alignment="CENTER" />
+						<Label fx:id="lblSessionName" text="Local" BorderPane.alignment="CENTER" />
 					</center>
 					<padding>
 						<Insets bottom="5.0" left="20.0" right="20.0" top="5.0" />

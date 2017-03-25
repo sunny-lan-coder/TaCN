@@ -4,4 +4,5 @@ import tk.sunnylan.tacn.webinterface.TALoginClient;
 
 public interface ILoginListener {
 	public void successfulLogin(TALoginClient loggedIn);
+	public void loginCancelled();
 }
