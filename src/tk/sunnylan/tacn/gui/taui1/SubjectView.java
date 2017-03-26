@@ -1,6 +1,6 @@
 package tk.sunnylan.tacn.gui.taui1;
 
-import static tk.sunnylan.tacn.parse.Util.convertMarkToString;
+import static tk.sunnylan.tacn.parse.htmlunit.Util.convertMarkToString;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -29,7 +29,7 @@ import javafx.scene.control.TreeTableColumn.CellEditEvent;
 import tk.sunnylan.tacn.data.Assignment;
 import tk.sunnylan.tacn.data.Mark;
 import tk.sunnylan.tacn.data.Subject;
-import tk.sunnylan.tacn.parse.Parse;
+import tk.sunnylan.tacn.parse.htmlunit.Parse;
 
 public class SubjectView extends Scene {
 

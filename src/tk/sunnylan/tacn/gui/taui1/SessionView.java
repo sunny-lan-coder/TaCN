@@ -40,11 +40,11 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.data.Subject;
-import tk.sunnylan.tacn.parse.Parse;
-import tk.sunnylan.tacn.parse.SubjectChange;
-import tk.sunnylan.tacn.parse.Update;
-import tk.sunnylan.tacn.webinterface.TALoginClient;
-import tk.sunnylan.tacn.webinterface.TASession;
+import tk.sunnylan.tacn.parse.htmlunit.Parse;
+import tk.sunnylan.tacn.parse.htmlunit.SubjectChange;
+import tk.sunnylan.tacn.parse.htmlunit.Update;
+import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
+import tk.sunnylan.tacn.webinterface.htmlunit.TASession;
 
 public class SessionView extends Scene {
 
@@ -117,7 +117,7 @@ public class SessionView extends Scene {
 		controller.txtSessionName.setText(profile.profileName);
 		controller.txtSessionName.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER) {
-				if (tk.sunnylan.tacn.parse.Util.sanitizeFileName(controller.txtSessionName.getText()).isEmpty()) {
+				if (tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(controller.txtSessionName.getText()).isEmpty()) {
 					controller.txtSessionName.setText(profile.profileName);
 					return;
 				}
@@ -223,7 +223,7 @@ public class SessionView extends Scene {
 	private void enableCache() {
 		if (!profile.isCached) {
 			// generate cache path
-			profile.cachepath = tk.sunnylan.tacn.parse.Util.sanitizeFileName(profile.profileName) + "\\";
+			profile.cachepath = tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(profile.profileName) + "\\";
 			while (Files.exists(Paths.get(context.cachepath + profile.cachepath)))
 				profile.cachepath += Util.genRandomProfileName(10);
 			saveCache();
@@ -258,7 +258,7 @@ public class SessionView extends Scene {
 			for (String coursecode : subjects.keySet()) {
 
 				PrintWriter writer = new PrintWriter(context.cachepath + profile.cachepath
-						+ tk.sunnylan.tacn.parse.Util.sanitizeFileName(coursecode) + ".xml", "UTF-8");
+						+ tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(coursecode) + ".xml", "UTF-8");
 				writer.print("<isis>");
 				writer.print(subjects.get(coursecode).toString());
 				writer.print("</isis>");

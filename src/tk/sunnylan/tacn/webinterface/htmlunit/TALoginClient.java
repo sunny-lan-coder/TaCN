@@ -1,4 +1,4 @@
-package tk.sunnylan.tacn.webinterface;
+package tk.sunnylan.tacn.webinterface.htmlunit;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.ProxyConfig;

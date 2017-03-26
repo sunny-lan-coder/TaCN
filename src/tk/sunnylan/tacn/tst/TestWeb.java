@@ -2,9 +2,9 @@ package tk.sunnylan.tacn.tst;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import tk.sunnylan.tacn.parse.Parse;
-import tk.sunnylan.tacn.webinterface.TALoginClient;
-import tk.sunnylan.tacn.webinterface.TASession;
+import tk.sunnylan.tacn.parse.htmlunit.Parse;
+import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
+import tk.sunnylan.tacn.webinterface.htmlunit.TASession;
 
 public class TestWeb {
 

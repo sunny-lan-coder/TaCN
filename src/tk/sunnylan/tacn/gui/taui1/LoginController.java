@@ -12,7 +12,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import tk.sunnylan.tacn.webinterface.TALoginClient;
+import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
 
 public class LoginController {
 

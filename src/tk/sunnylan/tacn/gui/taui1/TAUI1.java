@@ -36,7 +36,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.tst.CONFIG;
-import tk.sunnylan.tacn.webinterface.TALoginClient;
+import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
 
 public class TAUI1 extends Application {
 

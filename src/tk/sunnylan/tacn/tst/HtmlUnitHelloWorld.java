@@ -3,7 +3,7 @@ package tk.sunnylan.tacn.tst;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import tk.sunnylan.tacn.webinterface.Util;
+import tk.sunnylan.tacn.webinterface.htmlunit.Util;
 
 public class HtmlUnitHelloWorld {
 

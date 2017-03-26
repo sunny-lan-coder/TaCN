@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import tk.sunnylan.tacn.parse.Util;
+import tk.sunnylan.tacn.parse.htmlunit.Util;
 
 public class Subject {
 	public String courseCode;
