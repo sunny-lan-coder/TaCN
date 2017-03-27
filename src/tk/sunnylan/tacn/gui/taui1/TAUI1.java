@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -76,14 +77,13 @@ public class TAUI1 extends Application {
 		loadingScene = new Scene(mainPane, 1280, 720);
 		logger.info("  Scene 1 loaded");
 
+		primaryStage.setScene(loadingScene);
+		primaryStage.show();
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
 		mainPane = mahLoader.load();
 		loginScene = new Scene(mainPane, 1280, 720);
 		loginController = mahLoader.getController();
 		logger.info("  Scene 2 loaded");
-
-		primaryStage.setScene(loadingScene);
-		primaryStage.show();
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("ProfileSelectionScreen.fxml"));
 		selectionScreen = new Scene(mahLoader.load());
 		selectionController = mahLoader.getController();
@@ -149,8 +149,12 @@ public class TAUI1 extends Application {
 		icon.addActionListener((e) -> Platform.runLater(() -> primaryStage.show()));
 		logger.info("UI loaded");
 
-		loadProfiles();
-		logger.info("Profiles loaded");
+		try {
+			loadProfiles();
+			logger.info("Profiles loaded");
+		} catch (IOException | ParserConfigurationException | SAXException e1) {
+			logger.log(Level.SEVERE, "Unable to load profiles", e1);
+		}
 
 		primaryStage.setScene(selectionScreen);
 
@@ -270,13 +274,13 @@ public class TAUI1 extends Application {
 	}
 
 	public void addProfile(ProfileLoadInfo p) {
-		logger.info("Adding profile "+p.profileName);
+		logger.info("Adding profile " + p.profileName);
 		profiles.put(p.profileName, p);
 		initProfileLink(p.profileName);
 	}
 
 	public void removeProfile(ProfileLoadInfo p) {
-		logger.info("Removing profile "+p.profileName);
+		logger.info("Removing profile " + p.profileName);
 		selectionController.profileLinks.getChildren().remove(profileLinks.get(p.profileName));
 		profileLinks.remove(p.profileName);
 		profiles.remove(p.profileName);
@@ -284,7 +288,14 @@ public class TAUI1 extends Application {
 
 	public static void main(String[] args) {
 		DEBUG_CONFIG.initDebug();
-		logger.info("Launching Tyanide...");
-		launch(args);
+		try {
+			logger.info("Launching Tyanide...");
+			launch(args);
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Unhandled exception", e);
+			JOptionPane.showMessageDialog(null, "An error occured in Tyanide. Please send the file "
+					+ DEBUG_CONFIG.logpath + " to sunny.lan.coder@gmail.com. Thank you!", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 }
