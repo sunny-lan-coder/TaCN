@@ -17,84 +17,76 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.javascript.JavaScriptErrorListener;
 
 public class Util {
-	public static void shutUp(WebClient webClient){
-		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+	public static void shutUp(WebClient webClient) {
+		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log",
+				"org.apache.commons.logging.impl.NoOpLog");
 
-	    java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF); 
-	    java.util.logging.Logger.getLogger("org.apache.commons.httpclient").setLevel(Level.OFF);
+		java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
+		java.util.logging.Logger.getLogger("org.apache.commons.httpclient").setLevel(Level.OFF);
 
-
-	    webClient.setIncorrectnessListener(new IncorrectnessListener() {
-
-	        @Override
-	        public void notify(String arg0, Object arg1) {
-	            // TODO Auto-generated method stub
-
-	        }
-	    });
-	    webClient.setCssErrorHandler(new ErrorHandler() {
-
-	        @Override
-	        public void warning(CSSParseException exception) throws CSSException {
-	            // TODO Auto-generated method stub
-
-	        }
-
-	        @Override
-	        public void fatalError(CSSParseException exception) throws CSSException {
-	            // TODO Auto-generated method stub
-
-	        }
-
-	        @Override
-	        public void error(CSSParseException exception) throws CSSException {
-	            // TODO Auto-generated method stub
-
-	        }
-	    });
-	    webClient.setJavaScriptErrorListener(new JavaScriptErrorListener() {
+		webClient.setIncorrectnessListener(new IncorrectnessListener() {
 
 			@Override
-			public void loadScriptError(HtmlPage arg0, URL arg1, Exception arg2) {
+			public void notify(String arg0, Object arg1) {
+
+			}
+		});
+		webClient.setCssErrorHandler(new ErrorHandler() {
+
+			@Override
+			public void warning(CSSParseException exception) throws CSSException {
+
+			}
+
+			@Override
+			public void fatalError(CSSParseException exception) throws CSSException {
+
+			}
+
+			@Override
+			public void error(CSSParseException exception) throws CSSException {
+
+			}
+		});
+		webClient.setJavaScriptErrorListener(new JavaScriptErrorListener() {
+			@Override
+			public void scriptException(HtmlPage page, ScriptException scriptException) {
 				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
-			public void malformedScriptURL(HtmlPage arg0, String arg1, MalformedURLException arg2) {
+			public void timeoutError(HtmlPage page, long allowedTime, long executionTime) {
 				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
-			public void scriptException(HtmlPage arg0, ScriptException arg1) {
+			public void malformedScriptURL(HtmlPage page, String url, MalformedURLException malformedURLException) {
 				// TODO Auto-generated method stub
 				
 			}
 
 			@Override
-			public void timeoutError(HtmlPage arg0, long arg1, long arg2) {
+			public void loadScriptError(HtmlPage page, URL scriptUrl, Exception exception) {
 				// TODO Auto-generated method stub
 				
 			}
 
-	    });
-	    webClient.setHTMLParserListener(new HTMLParserListener() {
+		});
+		webClient.setHTMLParserListener(new HTMLParserListener() {
 
 			@Override
 			public void error(String arg0, URL arg1, String arg2, int arg3, int arg4, String arg5) {
-				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void warning(String arg0, URL arg1, String arg2, int arg3, int arg4, String arg5) {
-				// TODO Auto-generated method stub
-				
+
 			}
 
-	       
-	    });
+		});
 
 	}
 }

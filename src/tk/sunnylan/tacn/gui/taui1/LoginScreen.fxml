@@ -32,7 +32,7 @@
             <JFXPasswordField fx:id="txtPassword" onKeyPressed="#keyPressed" promptText="Password" />
             <StackPane>
                <children>
-                  <Label fx:id="lblInvalid" text="Error" textAlignment="CENTER" textFill="RED" />
+                  <Label fx:id="lblInvalid" text="Error" textAlignment="CENTER" textFill="RED" textOverrun="CENTER_ELLIPSIS" />
                </children>
                <padding>
                   <Insets top="5.0" />

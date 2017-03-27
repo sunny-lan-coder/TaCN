@@ -17,7 +17,7 @@ import tk.sunnylan.tacn.webinterface.TALoginClient;
 public class LoginController {
 
 	@FXML
-	private JFXTextField txtStudentID;
+	public JFXTextField txtStudentID;
 
 	@FXML
 	private JFXPasswordField txtPassword;
@@ -59,12 +59,14 @@ public class LoginController {
 					Platform.runLater(() -> {
 						lblInvalid.setText("");
 						lblInvalid.setOpacity(0);
+						txtPassword.clear();
 						loginListener.successfulLogin(client);
 					});
 				}
 			} catch (Exception e) {
 				Platform.runLater(() -> {
 					lblInvalid.setText(e.getMessage());
+					txtPassword.clear();
 					lblInvalid.setOpacity(1);
 				});
 			}
@@ -100,6 +102,7 @@ public class LoginController {
 
 	@FXML
 	void linkCancelClicked(ActionEvent event) {
+		txtPassword.clear();
 		loginListener.loginCancelled();
 	}
 }

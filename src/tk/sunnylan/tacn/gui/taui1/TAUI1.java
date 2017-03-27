@@ -1,19 +1,14 @@
 package tk.sunnylan.tacn.gui.taui1;
 
-import java.awt.AWTException;
-import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.awt.TrayIcon.MessageType;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.stream.Stream;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
@@ -22,66 +17,103 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXSpinner;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import tk.sunnylan.tacn.data.Subject;
-import tk.sunnylan.tacn.parse.Parse;
-import tk.sunnylan.tacn.parse.SubjectChange;
-import tk.sunnylan.tacn.parse.Update;
+import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.tst.CONFIG;
 import tk.sunnylan.tacn.webinterface.TALoginClient;
-import tk.sunnylan.tacn.webinterface.TASession;
 
 public class TAUI1 extends Application {
 
-	final String savepath = new File("").getAbsolutePath() + "\\cache\\";
-	String curruser;
+	public final String cachepath = new File("").getAbsolutePath() + "\\cache\\";
 
-	public static void main(String[] args) {
-		// proxy test:
-		if (CONFIG.USE_PROXY) {
-			System.setProperty("http.proxyHost", "127.0.0.1");
-			System.setProperty("https.proxyHost", "127.0.0.1");
-			System.setProperty("http.proxyPort", "8080");
-			System.setProperty("https.proxyPort", "8080");
-		}
-		launch(args);
-	}
+	private Stage primaryStage;
+	private Scene loginScene;
+	private LoginController loginController;
+	private Scene loadingScene;
+	private ProfileSelectionController selectionController;
 
-	TASession session;
-	HashMap<String, Subject> subjects;
-	HashMap<String, SubjectView> sviews;
-	SessionView sessView;
-	Stage primaryStage;
-	Scene loginScene;
-	Thread refreshthread;
+	public TrayIcon icon;
+
+	private Scene lastScene;
+
+	private HashMap<String, ProfileLoadInfo> profiles;
+
+	private Label empty;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-
-		subjects = new HashMap<>();
-		sviews = new HashMap<>();
-
+		System.out.println("Initializing UI...");
+		primaryStage.setTitle("Tyanide");
+		primaryStage.setWidth(1280);
+		primaryStage.setHeight(720);
 		this.primaryStage = primaryStage;
-		FXMLLoader mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
-		Pane mainPane = mahLoader.load();
-		loginScene = new Scene(mainPane, 1280, 720);
-		LoginController loginController = mahLoader.getController();
-
-		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoadingScreen.fxml"));
+		FXMLLoader mahLoader ;
+		Pane mainPane = new StackPane(new JFXSpinner());
+		loadingScene = new Scene(mainPane, 1280, 720);
+		System.out.println("  Scene 1 loaded");
+		
+		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
 		mainPane = mahLoader.load();
-		Scene loadingScene = new Scene(mainPane, 1280, 720);
+		loginScene = new Scene(mainPane, 1280, 720);
+		loginController = mahLoader.getController();
+		System.out.println("  Scene 2 loaded");
+
+		primaryStage.setScene(loadingScene);
+		primaryStage.show();
+		mahLoader = new FXMLLoader(TAUI1.class.getResource("ProfileSelectionScreen.fxml"));
+		Scene selectionScreen = new Scene(mahLoader.load());
+		selectionController = mahLoader.getController();
+		System.out.println("  Scene 3 loaded");
+		selectionController.btnLoginNew.setOnAction(e -> {
+
+			loginController.loginListener = new ILoginListener() {
+
+				@Override
+				public void successfulLogin(TALoginClient loggedIn) {
+					SessionView view;
+					try {
+						ProfileLoadInfo p = new ProfileLoadInfo(loggedIn.user + " - new session", false);
+						p.password = loggedIn.pass;
+						p.username = loggedIn.user;
+						view = SessionView.createSessionView(p, TAUI1.this);
+
+						setScene(view);
+						view.loggedIn = loggedIn;
+						view.startSession();
+					} catch (IOException | ParserConfigurationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void loginCancelled() {
+					setScene(selectionScreen);
+				}
+			};
+			setScene(loginScene);
+
+		});
+
+		empty = new Label("No profiles");
+		empty.setWrapText(true);
+		empty.setPadding(new Insets(20, 0, 20, 0));
 
 		Platform.setImplicitExit(false);
 
@@ -96,215 +128,102 @@ public class TAUI1 extends Application {
 				}
 			}
 		});
-
-		try {
-			sessView = SessionView.createSessionView();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return;
-		}
-
-		loadCache();
-		JFXButton syncBtn = new JFXButton("Login");
-		syncBtn.setPrefWidth(Double.MAX_VALUE);
-		syncBtn.setOnAction(e -> {
-			loginController.loginListener = new ILoginListener() {
-
-				@Override
-				public void successfulLogin(TALoginClient loggedIn) {
-					setScene(loadingScene);
-
-					sessView.setSessionName(loggedIn.user);
-					new Thread(() -> {
-						session = new TASession(loggedIn);
-						try {
-							refreshthread = new Thread(() -> {
-								refreshLoop();
-							});
-							refreshthread.start();
-							Platform.runLater(() -> {
-								setScene(sessView);
-								syncBtn.setText("Logout");
-							});
-						} catch (Exception e) {
-							e.printStackTrace();
-							Platform.runLater(() -> setScene(loginScene));
-						}
-					}).start();
-
-				}
-
-				@Override
-				public void loginCancelled() {
-					setScene(sessView);
-				}
-
-			};
-
-			primaryStage.setScene(loginScene);
-			if (refreshthread != null)
-				refreshthread.interrupt();
-			if (session != null)
-				syncBtn.setText("Logout");
-
-		});
-		sessView.controller.globalMenu.getChildren().add(syncBtn);
-
-		JFXButton saveBtn = new JFXButton("Save");
-		saveBtn.setPrefWidth(Double.MAX_VALUE);
-		saveBtn.setOnAction(e -> {
-			saveCache();
-		});
-		sessView.controller.globalMenu.getChildren().add(saveBtn);
-
-		primaryStage.setScene(sessView);
-		primaryStage.setTitle("Tyanide");
-		primaryStage.setWidth(1280);
-		primaryStage.setHeight(720);
-		initNotifications();
-		primaryStage.show();
-	}
-
-	private void saveCache() {
-		for (String coursecode : subjects.keySet()) {
-			try {
-				PrintWriter writer = new PrintWriter(
-						savepath + tk.sunnylan.tacn.parse.Util.sanitizeFileName(coursecode) + ".xml", "UTF-8");
-				writer.print("<isis>");
-				writer.print(subjects.get(coursecode).toString());
-				writer.print("</isis>");
-				writer.close();
-			} catch (FileNotFoundException | UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-		}
-	}
-
-	private void refreshLoop() {
-		while (true) {
-
-			try {
-				if (session != null) {
-					final Update u = getUpdates();
-
-					if (u.updates.size() > 0 || u.additions.size() > 0) {
-						Platform.runLater(() -> {
-							try {
-								refresh(u);
-
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-						});
-						if (icon != null)
-							icon.displayMessage(Util.summarizeUpdatesShort(u), Util.summarizeUpdates(u),
-									MessageType.INFO);
-					}
-				}
-			} catch (Exception e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e2) {
-				return;
-			}
-		}
-
-	}
-
-	private TrayIcon icon;
-
-	public void initNotifications() throws IOException, AWTException {
-		SystemTray tray;
-		if (SystemTray.isSupported())
-			tray = SystemTray.getSystemTray();
-		else {
-			System.err.println("System tray not supported, not using notifications");
-
-			return;
-		}
-		icon = new TrayIcon(ImageIO.read(TAUI1.class.getResource("/res/img/ico.png")), "Tyanide");
+		
+		icon = new TrayIcon(ImageIO.read(TAUI1.class.getResource("/res/img/ico.png")), "Tyanide Sync");
 		icon.addActionListener((e) -> Platform.runLater(() -> primaryStage.show()));
-		tray.add(icon);
+		System.out.println("UI loaded");
+		
+		loadProfiles();
+		System.out.println("Profiles loaded");
+		
+		primaryStage.setScene(selectionScreen);
+
+		System.out.println("Done.");
 	}
 
-	private void loadCache() throws ParserConfigurationException, IOException {
+	private void loadProfiles() throws IOException, ParserConfigurationException, SAXException {
+		profiles = new HashMap<>();
+		selectionController.profileLinks.getChildren().clear();
+		if (!Files.exists(Paths.get(cachepath + "profiles.xml"))) {
+			saveProfiles();
+			selectionController.profileLinks.getChildren().add(empty);
+			return;
+		}
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 
-		try (Stream<Path> paths = Files.walk(Paths.get(savepath))) {
-			paths.forEach(filePath -> {
-				if (Files.isRegularFile(filePath)) {
-					Document doc;
-					try {
-						doc = builder.parse(filePath.toString());
-						Subject s = new Subject((Element) doc.getChildNodes().item(0));
-						subjects.put(s.courseCode, s);
+		Document doc = builder.parse(cachepath + "profiles.xml");
+		NodeList l = doc.getDocumentElement().getElementsByTagName("profile");
 
-						SubjectView sv = SubjectView.getNewSubjectView(s);
-						sviews.put(s.courseCode, sv);
-						sessView.pages.add(new SessionPage(s.courseCode, sv, sv.toggleSummary));
-					} catch (SAXException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			});
+		selectionController.profileLinks.getChildren().remove(empty);
+		for (int i = 0; i < l.getLength(); i++) {
+			Element e = (Element) l.item(i);
+			ProfileLoadInfo p = new ProfileLoadInfo(e);
+			profiles.put(p.profileName, p);
+			initProfileLink(p.profileName);
 		}
 	}
 
-	private Update getUpdates() throws Exception {
-		Update u = new Update();
-		session.refresh();
-		for (HtmlPage p : session.subpages) {
-			String coursecode = Parse.getCourseCode(p);
-			Subject s = subjects.get(coursecode);
-			if (s == null) {
-				Subject x = new Subject(coursecode);
-				SubjectChange z = Parse.parseSubject(p, x);
-				if (z.changes.size() > 0)
-					u.additions.put(coursecode, z);
-				s = x;
-			} else {
-				SubjectChange z = Parse.parseSubject(p, s);
-				if (z.changes.size() > 0)
-					u.updates.put(coursecode, z);
+	private void initProfileLink(String profileName) {
+		Hyperlink lnk = new Hyperlink(profileName);
+		lnk.setOnAction(e -> {
+			try {
+				SessionView view = SessionView.createSessionView(profiles.get(profileName), this);
+				setScene(view);
+			} catch (IOException | ParserConfigurationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			subjects.put(coursecode, s);
-		}
-		return u;
+
+		});
+		selectionController.profileLinks.getChildren().add(lnk);
 	}
 
-	public void refresh(Update u) throws Exception {
-		for (String updatedC : u.updates.keySet()) {
-			sviews.get(updatedC).refresh();
+	public void saveProfiles() throws FileNotFoundException {
+		PrintWriter writer = new PrintWriter(cachepath + "profiles.xml");
+		writer.write("<isis>");
+		for (Entry<String, ProfileLoadInfo> entry : profiles.entrySet()) {
+			writer.write("<profile>");
+			writer.write(entry.getValue().toString());
+			writer.write("</profile>");
 		}
-		for (String added : u.additions.keySet()) {
-			Platform.runLater(() -> {
+		writer.write("</isis>");
+		writer.close();
+	}
 
-				try {
+	public void openLoginPage(ILoginListener listener, Scene ret, String... user) {
 
-					SubjectView sv = SubjectView.getNewSubjectView(subjects.get(added));
+		if (user.length == 1)
+			loginController.txtStudentID.setText(user[0]);
+		loginController.loginListener = new ILoginListener() {
 
-					sviews.put(added, sv);
+			@Override
+			public void successfulLogin(TALoginClient loggedIn) {
+				setScene(loadingScene);
+				listener.successfulLogin(loggedIn);
+				loginController.loginListener = null;
+				setScene(ret);
+			}
 
-					sessView.pages.add(new SessionPage(added, sv, sv.toggleSummary));
+			@Override
+			public void loginCancelled() {
+				listener.loginCancelled();
+				loginController.loginListener = null;
+				setScene(ret);
+			}
+		};
+		setScene(loginScene);
+	}
 
-				} catch (IOException e) {
+	public void showLoadingScreen(Scene ret) {
+		lastScene = ret;
+		setScene(loadingScene);
+	}
 
-					e.printStackTrace();
-
-				}
-
-			});
-		}
+	public void hideLoadingScreen() {
+		if (lastScene != null)
+			setScene(lastScene);
 	}
 
 	private void setScene(Scene s) {
@@ -314,5 +233,10 @@ public class TAUI1 extends Application {
 		primaryStage.setScene(s);
 		primaryStage.setWidth(prevW2);
 		primaryStage.setHeight(prevH2);
+	}
+
+	public static void main(String[] args) {
+		System.out.println("launching...");
+		launch(args);
 	}
 }

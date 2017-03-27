@@ -46,7 +46,6 @@ public class Assignment {
 			@Override
 			public void remove() {
 				wrap.remove();
-				// TODO raise event
 			}
 		};
 	}

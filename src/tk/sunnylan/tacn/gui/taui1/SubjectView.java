@@ -34,7 +34,6 @@ import tk.sunnylan.tacn.parse.Parse;
 public class SubjectView extends Scene {
 
 	public final ObservableList<AssignmentWrapper> assignments;
-	public final JFXToggleButton toggleSummary;
 	private SummaryView sum;
 	private Subject subject;
 	private SubjectViewController controller;
@@ -57,15 +56,6 @@ this.controller=controller;
 		controller.summaryPane.getChildren().add(sum.getRoot());
 		assignments = FXCollections.observableArrayList();
 		initMarkTable(controller, subject);
-		toggleSummary = new JFXToggleButton();
-		toggleSummary.setText("Show summary");
-		toggleSummary.setOnAction((e) -> {
-			controller.summaryPane.getChildren().clear();
-			if (toggleSummary.isSelected()) {
-				controller.summaryPane.getChildren().add(sum.getRoot());
-			}
-		});
-		toggleSummary.setSelected(true);
 	}
 
 	private void initMarkTable(SubjectViewController controller, Subject subject) {

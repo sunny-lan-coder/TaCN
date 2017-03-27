@@ -9,6 +9,7 @@ public class Util {
 	public static String sanitizeFileName(String s){
 		return s.replaceAll("[^a-zA-Z0-9.-]", "_");
 	}
+	
 	// TODO need to replace with a better section module
 	public static String sanitizeSectionName(String s) {
 		return s.replaceAll("\\s", "");

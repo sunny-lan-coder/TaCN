@@ -69,7 +69,6 @@ public class Subject {
 			@Override
 			public void remove() {
 				wrap.remove();
-				// TODO raise event
 			}
 		};
 	}

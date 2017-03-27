@@ -32,6 +32,7 @@ public class TASession {
 				break;
 			}
 		}
+		
 		if (table == null) {
 			throw new Exception("Could not find table");
 		}

@@ -1,6 +1,9 @@
 package tk.sunnylan.tacn.gui.taui1;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Map.Entry;
 
 import com.jfoenix.controls.JFXDrawer;
@@ -14,6 +17,32 @@ public class Util {
 	public static void antiAlias() {
 		System.setProperty("prism.lcdtext", "false");
 		System.setProperty("prism.text", "t2k");
+	}
+
+	private static SecureRandom random = new SecureRandom();
+
+	private static String nextSessionId() {
+		return new BigInteger(130, random).toString(32);
+	}
+
+	public static String genRandomProfileName(int len) {
+		return nextSessionId().substring(0, len);
+	}
+
+	public static void removeDirectory(File dir) {
+		if (!dir.exists())
+			return;
+		if (dir.isDirectory()) {
+			File[] files = dir.listFiles();
+			if (files != null && files.length > 0) {
+				for (File aFile : files) {
+					removeDirectory(aFile);
+				}
+			}
+			dir.delete();
+		} else {
+			dir.delete();
+		}
 	}
 
 	public static Transition getDrawerTransition(JFXDrawer drawer) {
@@ -83,12 +112,12 @@ public class Util {
 	}
 
 	public static String summarizeUpdatesShort(Update u) {
-		if(u.updates.size() ==1 && u.additions.size() ==0){
+		if (u.updates.size() == 1 && u.additions.size() == 0) {
 			for (Entry<String, SubjectChange> s : u.updates.entrySet()) {
 				return s.getKey() + " updated";
 			}
 		}
-		if(u.updates.size() ==0 && u.additions.size() ==1){
+		if (u.updates.size() == 0 && u.additions.size() == 1) {
 			for (Entry<String, SubjectChange> s : u.additions.entrySet()) {
 				return s.getKey() + " available";
 			}

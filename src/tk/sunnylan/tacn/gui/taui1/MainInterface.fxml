@@ -2,8 +2,9 @@
 
 <?import com.jfoenix.controls.JFXDrawer?>
 <?import com.jfoenix.controls.JFXHamburger?>
+<?import com.jfoenix.controls.JFXRadioButton?>
+<?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -11,43 +12,71 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tk.sunnylan.tacn.gui.taui1.SessionViewController">
+<AnchorPane prefHeight="480.0" prefWidth="640.0"
+	xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="tk.sunnylan.tacn.gui.taui1.SessionViewController">
 	<children>
-		<BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+		<BorderPane prefHeight="200.0" prefWidth="200.0"
+			AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+			AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<top>
-				<BorderPane style="-fx-background-color: rgb(230,230,230);" BorderPane.alignment="CENTER">
+				<BorderPane style="-fx-background-color: rgb(230,230,230);"
+					BorderPane.alignment="CENTER">
 					<left>
-						<JFXHamburger fx:id="hamOpenMenu" nodeOrientation="LEFT_TO_RIGHT" onMousePressed="#handleHamburgerClick" prefHeight="40.0" prefWidth="25.0" BorderPane.alignment="CENTER" />
+						<JFXHamburger fx:id="hamOpenMenu" nodeOrientation="LEFT_TO_RIGHT"
+							onMousePressed="#handleHamburgerClick" prefHeight="40.0"
+							prefWidth="25.0" BorderPane.alignment="CENTER" />
 					</left>
-					<center>
-						<Label fx:id="lblSessionName" text="Local" BorderPane.alignment="CENTER" />
-					</center>
 					<padding>
 						<Insets bottom="5.0" left="20.0" right="20.0" top="5.0" />
 					</padding>
+					<center>
+						<JFXTextField fx:id="txtSessionName" alignment="CENTER"
+							focusColor="#11182f" maxWidth="-Infinity" unFocusColor="#868383"
+							BorderPane.alignment="CENTER" />
+					</center>
 				</BorderPane>
 			</top>
 			<center>
 				<HBox BorderPane.alignment="CENTER">
 					<children>
-						<JFXDrawer fx:id="courseDrawer" defaultDrawerSize="200.0" minWidth="-Infinity">
+						<JFXDrawer fx:id="courseDrawer" defaultDrawerSize="200.0"
+							minWidth="-Infinity">
 							<children>
-								<VBox fx:id="vboxDrawer" minWidth="-Infinity" prefWidth="200.0" spacing="10.0">
+								<VBox fx:id="vboxDrawer" minWidth="-Infinity" prefWidth="200.0"
+									spacing="5.0">
 									<children>
 										<VBox fx:id="vboxLinks" spacing="5.0">
 											<padding>
 												<Insets top="10.0" />
 											</padding>
 										</VBox>
-                              <Separator />
+										<Separator />
 										<StackPane fx:id="stackMenuItems" />
-                              <Separator />
-                              <VBox fx:id="globalMenu" />
+										<VBox spacing="10.0">
+											<children>
+												<JFXRadioButton fx:id="radioStoreOffline"
+													contentDisplay="CENTER" text="Store offline" textAlignment="CENTER">
+													<padding>
+														<Insets right="15.0" />
+													</padding>
+												</JFXRadioButton>
+												<JFXRadioButton fx:id="radioSync"
+													maxWidth="1.7976931348623157E308" text="Sync to TeachAssist">
+													<padding>
+														<Insets right="15.0" />
+													</padding>
+												</JFXRadioButton>
+												<JFXRadioButton fx:id="radioStoreCreds"
+													disable="true" text="Remember credentials" />
+											</children>
+										</VBox>
 									</children>
 								</VBox>
 							</children>
 						</JFXDrawer>
-						<StackPane fx:id="contentPane" style="-fx-background-color: rgb(240,240,240);" HBox.hgrow="SOMETIMES" />
+						<StackPane fx:id="contentPane"
+							style="-fx-background-color: rgb(240,240,240);" HBox.hgrow="SOMETIMES" />
 					</children>
 				</HBox>
 			</center>

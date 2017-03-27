@@ -2,10 +2,11 @@ package tk.sunnylan.tacn.gui.taui1;
 
 import com.jfoenix.controls.JFXDrawer;
 import com.jfoenix.controls.JFXHamburger;
+import com.jfoenix.controls.JFXRadioButton;
+import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.transitions.hamburger.HamburgerBackArrowBasicTransition;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -20,21 +21,27 @@ public class SessionViewController {
 
 	@FXML
 	public StackPane contentPane;
-	
+
     @FXML
-    public Label lblSessionName;
+    public JFXTextField txtSessionName;
 
 	@FXML
 	public VBox vboxLinks;
-	
-    @FXML
-    private VBox vboxDrawer;
-    
-    @FXML
-    public StackPane stackMenuItems;
-    
-    @FXML
-    public VBox globalMenu;
+
+	@FXML
+	private VBox vboxDrawer;
+
+	@FXML
+	public StackPane stackMenuItems;
+
+	@FXML
+	public JFXRadioButton radioSync;
+
+	@FXML
+	public JFXRadioButton radioStoreCreds;
+
+	@FXML
+	public JFXRadioButton radioStoreOffline;
 
 	private HamburgerBackArrowBasicTransition burgerTask;
 
@@ -45,6 +52,7 @@ public class SessionViewController {
 		burgerTask.setRate(-2);
 		Util.getDrawerTransition(courseDrawer).setRate(2);
 		courseDrawer.open();
+//		System.out.println("controller initalize");
 	}
 
 	@FXML

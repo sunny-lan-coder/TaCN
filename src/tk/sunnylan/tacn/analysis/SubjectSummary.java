@@ -42,6 +42,7 @@ public class SubjectSummary {
 				average += sectionW * (totalPercent / totalWeight);
 			} else {
 				totalWeight = totalPercent = 100;
+				averages.remove(section);
 			}
 			
 		}

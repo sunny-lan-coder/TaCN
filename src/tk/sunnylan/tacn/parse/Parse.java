@@ -55,20 +55,16 @@ public class Parse {
 		if (tableMarks == null)
 			throw new Exception("Cannot find mark table");
 
-		// TODO replace with two way compare (so object reference is not
-		// updated)
 		HtmlTableRow firstRow = tableMarks.getRow(MARKTABLE_SECTION_ROW);
-		HashSet<String> newSections = new HashSet<>();
 		int idx = 0;
 		for (HtmlTableCell cell : firstRow.getCells()) {
 			if (idx == MARKTABLE_NAME_COL) {
 				idx++;
 				continue;
 			}
-			newSections.add(Util.sanitizeSectionName(cell.getTextContent()));
+			s.sections.add(Util.sanitizeSectionName(cell.getTextContent()));
 			idx++;
 		}
-		s.sections = newSections;
 
 		// compare for additions
 		HashSet<String> additions = new HashSet<>();

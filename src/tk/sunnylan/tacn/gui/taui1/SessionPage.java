@@ -4,9 +4,9 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 
 public class SessionPage {
-	public final String pageTitle;
-	public final Scene pageContent;
-	public final Node menu;
+	public String pageTitle;
+	public Scene pageContent;
+	public Node menu;
 
 	public SessionPage(String pageTitle, Scene pageContent, Node menu) {
 		this.pageTitle = pageTitle;
