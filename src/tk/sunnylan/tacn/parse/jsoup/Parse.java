@@ -45,9 +45,9 @@ public class Parse {
 
 		// TODO error checking
 
-		Elements rows = tableMarks.select("tr");
+		Elements rows = tableMarks.select(":root > tr");
 
-		Elements sectionRow = rows.get(MARKTABLE_SECTION_ROW).select("td, th");
+		Elements sectionRow = rows.get(MARKTABLE_SECTION_ROW).select(":root > td, th");
 		int idx = 0;
 		for (Element cell : sectionRow) {
 			if (idx == MARKTABLE_NAME_COL) {
@@ -63,7 +63,7 @@ public class Parse {
 		for (int i = 0; i < rows.size(); i++) {
 			if (i == MARKTABLE_SECTION_ROW)
 				continue;
-			Elements currRow = rows.get(i).select("td");
+			Elements currRow = rows.get(i).select(":root > td");
 			String name = currRow.get(MARKTABLE_NAME_COL).text();
 			if (name.isEmpty())
 				continue;
@@ -103,11 +103,11 @@ public class Parse {
 		if (tableWeights != null) {
 
 			// look for weights
-			Elements weightRows = tableWeights.select("tr");
+			Elements weightRows = tableWeights.select(":root > tr");
 			for (int i = 0; i < weightRows.size(); i++) {
 				if (i == WEIGHTTABLE_HEADER_ROW)
 					continue;
-				Elements cells = weightRows.get(i).select("td");
+				Elements cells = weightRows.get(i).select(":root > td");
 				double val = Double.parseDouble(
 						// TODO need to replace with a better section module
 						cells.get(WEIGHTTABLE_WEIGHT_COL).text().replace("%", "").trim());
@@ -132,7 +132,7 @@ public class Parse {
 			String s = toprowcells.get(index).text();
 			s = Util.sanitizeSectionName(s);
 			// System.out.println("curr:" + s + " -> " + index);
-			Elements sub = cell.select("table");
+			Elements sub = cell.select(":root > table");
 			if (sub.size() == 1) {
 				String text = cell.text();
 

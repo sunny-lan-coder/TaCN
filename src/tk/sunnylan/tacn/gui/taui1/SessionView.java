@@ -21,7 +21,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.jfoenix.controls.JFXButton;
 
 import javafx.application.Platform;
@@ -42,9 +41,8 @@ import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.data.Subject;
 import tk.sunnylan.tacn.parse.SubjectChange;
 import tk.sunnylan.tacn.parse.Update;
-import tk.sunnylan.tacn.parse.htmlunit.Parse;
-import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
-import tk.sunnylan.tacn.webinterface.htmlunit.TASession;
+import tk.sunnylan.tacn.parse.jsoup.Parse;
+import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class SessionView extends Scene {
 
@@ -56,9 +54,8 @@ public class SessionView extends Scene {
 	private HashMap<String, SubjectView> sviews;
 	private Thread refreshthread;
 	private TAUI1 context;
-	private TASession session;
 	private ProfileLoadInfo profile;
-	public TALoginClient loggedIn;
+	public TASession tasession;
 
 	private StackPane emptySubjectsPane;
 
@@ -300,8 +297,9 @@ public class SessionView extends Scene {
 	}
 
 	private void tryLogin() {
-		if (loggedIn != null) {
-			startSession();
+		if (tasession != null) {
+			controller.radioStoreCreds.setDisable(false);
+			startSync();
 			return;
 		}
 
@@ -309,8 +307,8 @@ public class SessionView extends Scene {
 			context.showLoadingScreen(this);
 			new Thread(() -> {
 				try {
-					loggedIn = new TALoginClient(profile.username, profile.password);
-					startSession();
+					tasession = new TASession(profile.username, profile.password);
+					startSync();
 				} catch (Exception e) {
 					e.printStackTrace();
 					Platform.runLater(() -> {
@@ -325,8 +323,8 @@ public class SessionView extends Scene {
 		ILoginListener l = new ILoginListener() {
 
 			@Override
-			public void successfulLogin(TALoginClient loggedIn) {
-				SessionView.this.loggedIn = loggedIn;
+			public void successfulLogin(TASession loggedIn) {
+				SessionView.this.tasession = loggedIn;
 				profile.username = loggedIn.user;
 				profile.password = loggedIn.pass;
 				controller.radioStoreCreds.setDisable(false);
@@ -336,7 +334,7 @@ public class SessionView extends Scene {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				startSession();
+				startSync();
 			}
 
 			@Override
@@ -354,27 +352,7 @@ public class SessionView extends Scene {
 		});
 	}
 
-	public void startSession() {
-		if (session != null)
-			return;
-		new Thread(() -> {
-			try {
-				session = new TASession(loggedIn);
-				session.refresh();
-				startSync();
-			} catch (Exception e) {
-				e.printStackTrace();
-				Platform.runLater(() -> {
-					context.hideLoadingScreen();
-					controller.radioStoreCreds.setDisable(false);
-				});
-				return;
-			}
-		}).start();
-
-	}
-
-	private void startSync() {
+	public void startSync() {
 		try {
 			initNotifications();
 		} catch (AWTException e) {
@@ -399,9 +377,8 @@ public class SessionView extends Scene {
 		while (true) {
 
 			try {
-				if (session != null) {
+				if (tasession != null) {
 					final Update u = getUpdates();
-
 					if (u.updates.size() > 0 || u.additions.size() > 0) {
 						Platform.runLater(() -> {
 							try {
@@ -435,8 +412,8 @@ public class SessionView extends Scene {
 
 	private Update getUpdates() throws Exception {
 		Update u = new Update();
-		session.refresh();
-		for (HtmlPage p : session.subpages) {
+		tasession.refresh();
+		for (org.jsoup.nodes.Document p : tasession.subpages) {
 			String coursecode = Parse.getCourseCode(p);
 			Subject s = subjects.get(coursecode);
 			if (s == null) {

@@ -36,7 +36,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.tst.CONFIG;
-import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
+import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class TAUI1 extends Application {
 
@@ -85,7 +85,7 @@ public class TAUI1 extends Application {
 			loginController.loginListener = new ILoginListener() {
 
 				@Override
-				public void successfulLogin(TALoginClient loggedIn) {
+				public void successfulLogin(TASession loggedIn) {
 					SessionView view;
 					try {
 						ProfileLoadInfo p = new ProfileLoadInfo(loggedIn.user + " - new session", false);
@@ -94,8 +94,8 @@ public class TAUI1 extends Application {
 						view = SessionView.createSessionView(p, TAUI1.this);
 
 						setScene(view);
-						view.loggedIn = loggedIn;
-						view.startSession();
+						view.tasession = loggedIn;
+						view.startSync();
 					} catch (IOException | ParserConfigurationException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -199,7 +199,7 @@ public class TAUI1 extends Application {
 		loginController.loginListener = new ILoginListener() {
 
 			@Override
-			public void successfulLogin(TALoginClient loggedIn) {
+			public void successfulLogin(TASession loggedIn) {
 				setScene(loadingScene);
 				listener.successfulLogin(loggedIn);
 				loginController.loginListener = null;

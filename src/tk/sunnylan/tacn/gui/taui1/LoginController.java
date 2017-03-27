@@ -12,7 +12,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
+import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class LoginController {
 
@@ -54,7 +54,7 @@ public class LoginController {
 		new Thread(() -> {
 
 			try {
-				TALoginClient client = new TALoginClient(txtStudentID.getText(), txtPassword.getText());
+				TASession client = new TASession(txtStudentID.getText(), txtPassword.getText());
 				if (client != null && loginListener != null) {
 					Platform.runLater(() -> {
 						lblInvalid.setText("");
