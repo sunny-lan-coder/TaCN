@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
@@ -35,11 +37,11 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
-import tk.sunnylan.tacn.tst.CONFIG;
-import tk.sunnylan.tacn.tst.SSLUtilities;
+import tk.sunnylan.tacn.tst.DEBUG_CONFIG;
 import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class TAUI1 extends Application {
+	private static Logger logger = Logger.getLogger(TAUI1.class.getName());
 
 	public final String cachepath = new File("").getAbsolutePath() + "\\cache\\";
 
@@ -57,13 +59,13 @@ public class TAUI1 extends Application {
 
 	private Label empty;
 	private Scene selectionScreen;
-	
-	public boolean keepopen=false;
+
+	public boolean keepopen = false;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		
-		System.out.println("Initializing UI...");
+
+		logger.info("Initializing UI...");
 		primaryStage.setTitle("Tyanide");
 		primaryStage.setWidth(1280);
 		primaryStage.setHeight(720);
@@ -72,43 +74,46 @@ public class TAUI1 extends Application {
 		FXMLLoader mahLoader;
 		Pane mainPane = new StackPane(new JFXSpinner());
 		loadingScene = new Scene(mainPane, 1280, 720);
-		System.out.println("  Scene 1 loaded");
+		logger.info("  Scene 1 loaded");
 
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
 		mainPane = mahLoader.load();
 		loginScene = new Scene(mainPane, 1280, 720);
 		loginController = mahLoader.getController();
-		System.out.println("  Scene 2 loaded");
+		logger.info("  Scene 2 loaded");
 
 		primaryStage.setScene(loadingScene);
 		primaryStage.show();
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("ProfileSelectionScreen.fxml"));
 		selectionScreen = new Scene(mahLoader.load());
 		selectionController = mahLoader.getController();
-		System.out.println("  Scene 3 loaded");
+		logger.info("  Scene 3 loaded");
 		selectionController.btnLoginNew.setOnAction(e -> {
 
 			loginController.loginListener = new ILoginListener() {
 
 				@Override
 				public void successfulLogin(TASession loggedIn) {
-					
+
+					String name = loggedIn.user + " - temporary session";
+					while (profiles.containsKey(name))
+						name += Util.genRandomProfileName(3);
+					ProfileLoadInfo p = new ProfileLoadInfo(name, false);
+					p.password = loggedIn.pass;
+					p.username = loggedIn.user;
+					SessionView view;
 					try {
-						String name=loggedIn.user + " - temporary session";
-						while(profiles.containsKey(name))
-							name+=Util.genRandomProfileName(3);
-						ProfileLoadInfo p = new ProfileLoadInfo(name, false);
-						p.password = loggedIn.pass;
-						p.username = loggedIn.user;
-						SessionView view = SessionView.createSessionView(p, TAUI1.this);
-						view.tasession = loggedIn;
-						view.trySync();
-						setScene(view);
-					} catch (IOException | ParserConfigurationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						view = SessionView.createSessionView(p, TAUI1.this);
+					} catch (IOException e) {
+						loggedIn.logout();
+						logger.log(Level.SEVERE, "Unable to load view:SessionView", e);
 						setScene(selectionScreen);
+						return;
 					}
+					view.tasession = loggedIn;
+					view.trySync();
+					setScene(view);
+
 				}
 
 				@Override
@@ -129,12 +134,12 @@ public class TAUI1 extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent event) {
-				if (CONFIG.DEBUG_MODE) {
+				if (DEBUG_CONFIG.DEBUG_MODE) {
 					System.exit(0);
-				} else if(keepopen) {
+				} else if (keepopen) {
 					event.consume();
 					primaryStage.hide();
-				}else{
+				} else {
 					System.exit(0);
 				}
 			}
@@ -142,19 +147,20 @@ public class TAUI1 extends Application {
 
 		icon = new TrayIcon(ImageIO.read(TAUI1.class.getResource("/res/img/ico.png")), "Tyanide Sync");
 		icon.addActionListener((e) -> Platform.runLater(() -> primaryStage.show()));
-		System.out.println("UI loaded");
+		logger.info("UI loaded");
 
 		loadProfiles();
-		System.out.println("Profiles loaded");
+		logger.info("Profiles loaded");
 
 		primaryStage.setScene(selectionScreen);
 
-		System.out.println("Done.");
+		logger.info("Done.");
 	}
 
 	private void loadProfiles() throws IOException, ParserConfigurationException, SAXException {
+		logger.info("Loading profiles");
 		profiles = new HashMap<>();
-		profileLinks=new HashMap<>();
+		profileLinks = new HashMap<>();
 		selectionController.profileLinks.getChildren().clear();
 		if (!Files.exists(Paths.get(cachepath + "profiles.xml"))) {
 			saveProfiles();
@@ -176,27 +182,35 @@ public class TAUI1 extends Application {
 			initProfileLink(p.profileName);
 		}
 	}
-	
-	private HashMap<String , Hyperlink> profileLinks;
+
+	private HashMap<String, Hyperlink> profileLinks;
 
 	private void initProfileLink(String profileName) {
 		Hyperlink lnk = new Hyperlink(profileName);
 		lnk.setOnAction(e -> {
+			SessionView view;
 			try {
-				SessionView view = SessionView.createSessionView(profiles.get(profileName), this);
-				setScene(view);
-			} catch (IOException | ParserConfigurationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				view = SessionView.createSessionView(profiles.get(profileName), this);
+			} catch (IOException e1) {
+				logger.log(Level.SEVERE, "Unable to load view:SessionView", e);
+				return;
 			}
 
+			setScene(view);
 		});
 		profileLinks.put(profileName, lnk);
 		selectionController.profileLinks.getChildren().add(lnk);
 	}
 
-	public void saveProfiles() throws FileNotFoundException {
-		PrintWriter writer = new PrintWriter(cachepath + "profiles.xml");
+	public void saveProfiles() {
+		logger.info("saving profiles");
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(cachepath + "profiles.xml");
+		} catch (FileNotFoundException e) {
+			logger.log(Level.SEVERE, "Cache file not found", e);
+			return;
+		}
 		writer.write("<isis>");
 		for (Entry<String, ProfileLoadInfo> entry : profiles.entrySet()) {
 			writer.write("<profile>");
@@ -241,12 +255,9 @@ public class TAUI1 extends Application {
 	}
 
 	public void hideLoadingScreen() {
-		if (lastScene != null){
+		if (lastScene != null) {
 			setScene(lastScene);
-			lastScene=null;
-		}else{
-			System.out.println("tried to hide but was null");
-			throw new NullPointerException();
+			lastScene = null;
 		}
 	}
 
@@ -257,28 +268,23 @@ public class TAUI1 extends Application {
 		primaryStage.setWidth(prevW2);
 		primaryStage.setHeight(prevH2);
 	}
-	
-	public void addProfile(ProfileLoadInfo p){
+
+	public void addProfile(ProfileLoadInfo p) {
+		logger.info("Adding profile "+p.profileName);
 		profiles.put(p.profileName, p);
 		initProfileLink(p.profileName);
 	}
-	
-	public void removeProfile(ProfileLoadInfo p){
+
+	public void removeProfile(ProfileLoadInfo p) {
+		logger.info("Removing profile "+p.profileName);
 		selectionController.profileLinks.getChildren().remove(profileLinks.get(p.profileName));
 		profileLinks.remove(p.profileName);
 		profiles.remove(p.profileName);
 	}
 
 	public static void main(String[] args) {
-		if(CONFIG.USE_PROXY){
-			SSLUtilities.trustAllHostnames();
-			SSLUtilities.trustAllHttpsCertificates();
-			System.setProperty("http.proxyHost", CONFIG.PROXY_HOST); // set proxy server
-			 System.setProperty("http.proxyPort",CONFIG.PROXY_PORT+"");  //set proxy port
-			 System.setProperty("https.proxyHost", CONFIG.PROXY_HOST); // set proxy server
-			 System.setProperty("https.proxyPort",CONFIG.PROXY_PORT+"");  //set proxy port
-		}
-		System.out.println("Launching Tyanide...");
+		DEBUG_CONFIG.initDebug();
+		logger.info("Launching Tyanide...");
 		launch(args);
 	}
 }

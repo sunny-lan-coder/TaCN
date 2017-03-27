@@ -1,5 +1,8 @@
 package tk.sunnylan.tacn.gui.taui1;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXSpinner;
@@ -15,6 +18,7 @@ import javafx.scene.input.KeyEvent;
 import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class LoginController {
+	private static Logger logger=Logger.getLogger(LoginController.class.getName());
 
 	@FXML
 	public JFXTextField txtStudentID;
@@ -69,7 +73,7 @@ public class LoginController {
 					txtPassword.clear();
 					lblInvalid.setOpacity(1);
 				});
-				e.printStackTrace();
+				logger.log(Level.WARNING, "Login failed", e);
 			}
 			Platform.runLater(() -> {
 				btnLogin.setOpacity(1);

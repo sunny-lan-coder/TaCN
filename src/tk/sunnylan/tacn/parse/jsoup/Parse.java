@@ -3,6 +3,8 @@ package tk.sunnylan.tacn.parse.jsoup;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,6 +18,8 @@ import tk.sunnylan.tacn.parse.SubjectChange;
 import tk.sunnylan.tacn.parse.htmlunit.Util;
 
 public class Parse {
+	private static Logger logger = Logger.getLogger(Parse.class.getName());
+
 	static final String MARKTABLE_KEYWORD = "Assignment";
 	static final int MARKTABLE_NAME_COL = 0;
 	static final int MARKTABLE_SECTION_ROW = 0;
@@ -130,7 +134,6 @@ public class Parse {
 			Element cell = cells.get(index);
 			String s = toprowcells.get(index).text();
 			s = Util.sanitizeSectionName(s);
-			// System.out.println("curr:" + s + " -> " + index);
 			Elements sub = cell.select(":root > table");
 			if (sub.size() == 1) {
 				String text = cell.text();
@@ -171,7 +174,6 @@ public class Parse {
 	private static MarkChange _parseMark(Mark m, String text) {
 		boolean changed = false;
 		try {
-			
 
 			double weight;
 
@@ -219,7 +221,7 @@ public class Parse {
 			m.updateDenominator(den);
 			m.updateWeight(weight);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.log(Level.INFO, "Could not parse mark", ex);
 			return new MarkChange(false, changed);
 		}
 		return new MarkChange(true, changed);

@@ -4,13 +4,14 @@ import java.awt.AWTException;
 import java.awt.SystemTray;
 import java.awt.TrayIcon.MessageType;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -45,6 +46,7 @@ import tk.sunnylan.tacn.parse.jsoup.Parse;
 import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class SessionView extends Scene {
+	private static Logger logger = Logger.getLogger(SessionView.class.getName());
 
 	private SessionViewController controller;
 	public final ObservableMap<String, SessionPage> pages;
@@ -61,17 +63,23 @@ public class SessionView extends Scene {
 	private StackPane emptySubjectsPane;
 
 	// AI YA CUSTY
-	public static SessionView createSessionView(ProfileLoadInfo p, TAUI1 context)
-			throws IOException, ParserConfigurationException {
+	public static SessionView createSessionView(ProfileLoadInfo p, TAUI1 context) throws IOException
+			 {
 		FXMLLoader mahLoader = new FXMLLoader(TAUI1.class.getResource("MainInterface.fxml"));
 
-		SessionView view = new SessionView(p, mahLoader.load(), mahLoader.getController(), context);
+		SessionView view;
+		try {
+			view = new SessionView(p, mahLoader.load(), mahLoader.getController(), context);
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Unable to load FXML file", e);
+			throw e;
+		}
 
 		return view;
 	}
 
 	private SessionView(ProfileLoadInfo profile, Parent par, SessionViewController controller, TAUI1 context)
-			throws ParserConfigurationException, IOException {
+			 {
 		super(par);
 		this.context = context;
 		this.profile = profile;
@@ -123,12 +131,9 @@ public class SessionView extends Scene {
 				}
 				profile.profileName = controller.txtSessionName.getText();
 				controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
-				try {
-					context.saveProfiles();
-				} catch (FileNotFoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+
+				context.saveProfiles();
+
 				this.getRoot().requestFocus();
 			}
 
@@ -152,15 +157,12 @@ public class SessionView extends Scene {
 		});
 
 		controller.radioStoreOffline.setOnAction(e -> {
-			try {
-				if (!controller.radioStoreOffline.isSelected())
-					disableCache();
-				else
-					enableCache();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+
+			if (!controller.radioStoreOffline.isSelected())
+				disableCache();
+			else
+				enableCache();
+
 			this.getRoot().requestFocus();
 		});
 
@@ -184,10 +186,9 @@ public class SessionView extends Scene {
 		if (profile.password == null && profile.username == null)
 			return;
 		profile.hasPassword = profile.hasUsername = true;
-		try {
-			context.saveProfiles();
-		} catch (FileNotFoundException e1) {
-		}
+
+		context.saveProfiles();
+
 		controller.radioStoreCreds.setDisable(false);
 		controller.radioStoreCreds.setSelected(true);
 	}
@@ -195,17 +196,13 @@ public class SessionView extends Scene {
 	private void unsetSaveCredentials() {
 		// if(!(profile.hasPassword && profile.hasUsername))
 		profile.hasPassword = profile.hasUsername = false;
-
-		try {
-			context.saveProfiles();
-		} catch (FileNotFoundException e1) {
-		}
+		context.saveProfiles();
 		controller.radioStoreCreds.setSelected(false);
 	}
 
 	private SystemTray tray;
 
-	private void initNotifications() throws AWTException {
+	private void initNotifications() {
 		if (SystemTray.isSupported())
 			tray = SystemTray.getSystemTray();
 		else {
@@ -213,8 +210,12 @@ public class SessionView extends Scene {
 			return;
 		}
 
-		tray.add(context.icon);
-		context.keepopen = true;
+		try {
+			tray.add(context.icon);
+			context.keepopen = true;
+		} catch (AWTException e) {
+			logger.log(Level.WARNING, "Unable to init tray notifications", e);
+		}
 	}
 
 	private void endNotifications() {
@@ -224,37 +225,31 @@ public class SessionView extends Scene {
 	}
 
 	private void enableCache() {
+		logger.info("Enabling cache");
 		if (!profile.isCached) {
 			// generate cache path
 			profile.cachepath = tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(profile.profileName) + "\\";
 			while (Files.exists(Paths.get(context.cachepath + profile.cachepath)))
 				profile.cachepath += Util.genRandomProfileName(10);
 			saveCache();
-			profile.isCached = true;
-			System.out.println("putting");
 			context.addProfile(profile);
 		}
-		try {
-			context.saveProfiles();
-			loadCache();
-		} catch (ParserConfigurationException | IOException e) {
-		}
+
+		context.saveProfiles();
+		loadCache();
+
 		controller.radioStoreOffline.setSelected(true);
 	}
 
-	private void disableCache() throws IOException {
+	private void disableCache() {
+		logger.info("Disabling cache");
 		if (profile.isCached) {
 			Util.removeDirectory(new File(context.cachepath + profile.cachepath));
 			profile.isCached = false;
-			System.out.println("removing");
 			context.removeProfile(profile);
 		}
-		try {
-			context.saveProfiles();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		context.saveProfiles();
+
 		controller.radioStoreOffline.setSelected(false);
 	}
 
@@ -273,14 +268,18 @@ public class SessionView extends Scene {
 
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.log(Level.SEVERE, "Unable to write to cache", e1);
 		}
 	}
 
-	private void loadCache() throws ParserConfigurationException, IOException {
+	private void loadCache() {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
+		DocumentBuilder builder;
+		try {
+			builder = factory.newDocumentBuilder();
+		} catch (ParserConfigurationException e1) {
+			return;
+		}
 
 		try (Stream<Path> paths = Files.walk(Paths.get(context.cachepath + profile.cachepath))) {
 			paths.forEach(filePath -> {
@@ -288,21 +287,28 @@ public class SessionView extends Scene {
 					Document doc;
 					try {
 						doc = builder.parse(filePath.toString());
-						Subject s = new Subject((Element) doc.getChildNodes().item(0));
-						subjects.put(s.courseCode, s);
-
-						SubjectView sv = SubjectView.getNewSubjectView(s);
-						sviews.put(s.courseCode, sv);
-						SessionPage mahPage = new SessionPage(s.courseCode, sv, new Pane());
-
-						updatePage(s.courseCode, mahPage);
-
 					} catch (SAXException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.log(Level.SEVERE, "Unable to read/parse a subject cache file", e);
+						return;
 					}
+					Subject s = new Subject((Element) doc.getChildNodes().item(0));
+					subjects.put(s.courseCode, s);
+
+					SubjectView sv;
+					try {
+						sv = SubjectView.getNewSubjectView(s);
+					} catch (IOException e) {
+						return;
+					}
+					sviews.put(s.courseCode, sv);
+					SessionPage mahPage = new SessionPage(s.courseCode, sv, new Pane());
+
+					updatePage(s.courseCode, mahPage);
 				}
 			});
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Failed to walk cache directory", e);
+			return;
 		}
 	}
 
@@ -323,7 +329,7 @@ public class SessionView extends Scene {
 					tasession = new TASession(profile.username, profile.password);
 					startSync();
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.log(Level.WARNING, "Unable to log in", e);
 					stopSync();
 				}
 				Platform.runLater(() -> {
@@ -363,20 +369,13 @@ public class SessionView extends Scene {
 
 	private void startSync() {
 		profile.isSynced = true;
-		try {
-			initNotifications();
-		} catch (AWTException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		try {
-			context.saveProfiles();
-			refreshthread = new Thread(() -> refreshLoop());
-			refreshthread.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		initNotifications();
+
+		context.saveProfiles();
+
+		refreshthread = new Thread(() -> refreshLoop());
+		refreshthread.start();
 
 		Platform.runLater(() -> {
 			controller.radioSync.setDisable(false);
@@ -387,11 +386,8 @@ public class SessionView extends Scene {
 
 	private void stopSync() {
 		profile.isSynced = false;
-		try {
-			context.saveProfiles();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+		context.saveProfiles();
+
 		if (refreshthread != null)
 			refreshthread.interrupt();
 		Platform.runLater(() -> {
@@ -400,30 +396,20 @@ public class SessionView extends Scene {
 			this.getRoot().requestFocus();
 		});
 		if (tasession != null)
-			try {
-				tasession.logout();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+			tasession.logout();
+
 		endNotifications();
 	}
 
 	private void refreshLoop() {
 		while (true) {
-
-			try {
-				if (tasession != null) {
+			if (tasession != null) {
+				try {
 					final Update u = getUpdates();
 					if (u.updates.size() > 0 || u.additions.size() > 0) {
 						Platform.runLater(() -> {
-							try {
-								refresh(u);
-
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
+							refresh(u);
 						});
 						if (context.icon != null)
 							context.icon.displayMessage(Util.summarizeUpdatesShort(u), Util.summarizeUpdates(u),
@@ -432,11 +418,14 @@ public class SessionView extends Scene {
 							saveCache();
 						}
 					}
+				}catch(RuntimeException ex){
+					throw ex;
 				}
-			} catch (Exception e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
+				catch (Exception e) {
+					logger.log(Level.SEVERE, "Unable to get updates", e);
+				}
 			}
+
 			try {
 				Thread.sleep(10000);
 			} catch (InterruptedException e2) {
@@ -457,12 +446,7 @@ public class SessionView extends Scene {
 			saveCache();
 
 		if (tasession != null)
-			try {
-				tasession.logout();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			tasession.logout();
 
 		context.showSelectionScene();
 	}
@@ -489,20 +473,23 @@ public class SessionView extends Scene {
 		return u;
 	}
 
-	private void refresh(Update u) throws Exception {
+	private void refresh(Update u) {
 		for (String updatedC : u.updates.keySet()) {
 			sviews.get(updatedC).refresh();
 		}
 		for (String added : u.additions.keySet()) {
 			Platform.runLater(() -> {
+				SubjectView sv;
 				try {
-					SubjectView sv = SubjectView.getNewSubjectView(subjects.get(added));
-					sviews.put(added, sv);
-
-					updatePage(added, new SessionPage(added, sv, new Pane()));
+					sv = SubjectView.getNewSubjectView(subjects.get(added));
 				} catch (IOException e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE, "Could not lad subject view", e);
+					return;
 				}
+				sviews.put(added, sv);
+
+				updatePage(added, new SessionPage(added, sv, new Pane()));
+
 			});
 		}
 	}

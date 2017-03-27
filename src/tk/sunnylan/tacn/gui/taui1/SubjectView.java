@@ -5,8 +5,11 @@ import static tk.sunnylan.tacn.parse.htmlunit.Util.convertMarkToString;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.jfoenix.controls.JFXToggleButton;
+import org.eclipse.jetty.io.RuntimeIOException;
+
 import com.jfoenix.controls.JFXTreeTableColumn;
 import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.cells.editors.TextFieldEditorBuilder;
@@ -32,6 +35,7 @@ import tk.sunnylan.tacn.data.Subject;
 import tk.sunnylan.tacn.parse.htmlunit.Parse;
 
 public class SubjectView extends Scene {
+	private static Logger logger = Logger.getLogger(SubjectView.class.getName());
 
 	public final ObservableList<AssignmentWrapper> assignments;
 	private SummaryView sum;
@@ -40,17 +44,22 @@ public class SubjectView extends Scene {
 
 	public static SubjectView getNewSubjectView(Subject subject) throws IOException {
 		FXMLLoader mahLoader = new FXMLLoader(TAUI1.class.getResource("SubjectView.fxml"));
-		return new SubjectView(mahLoader.load(), mahLoader.getController(), subject);
+		try {
+			return new SubjectView(mahLoader.load(), mahLoader.getController(), subject);
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Unable to load subject view", e);
+			throw e;
+		}
 	}
 
 	public SubjectView(Parent root, SubjectViewController controller, Subject subject) {
 		super(root);
-this.controller=controller;
+		this.controller = controller;
 		try {
 			sum = SummaryView.getNewScene(subject);
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.log(Level.SEVERE, "Unable to initialize UI component:sum", e1);
+			throw new RuntimeIOException(e1);
 		}
 
 		controller.summaryPane.getChildren().add(sum.getRoot());
@@ -108,12 +117,9 @@ this.controller=controller;
 				if (t.getNewValue().isEmpty()) {
 					wr.a.clearMark(section);
 				} else if (!wr.a.containsMark(section))
-					try {
+				
 						wr.a.addMark(new Mark(0, 0, 0), section);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					
 				if (!Parse.parseMark(wr.a.getMark(section), t.getNewValue())) {
 					if (!Parse.parseMark(wr.a.getMark(section), t.getOldValue())) {
 						wr.a.clearMark(section);
@@ -127,7 +133,6 @@ this.controller=controller;
 			controller.tableMarks.getColumns().add(sectionColumn);
 		}
 
-		
 		refresh();
 	}
 

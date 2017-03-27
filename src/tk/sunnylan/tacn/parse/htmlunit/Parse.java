@@ -138,7 +138,6 @@ public class Parse {
 			HtmlTableCell cell = cells.get(index);
 			String s = table.getCellAt(MARKTABLE_SECTION_ROW, index).getTextContent();
 			s = Util.sanitizeSectionName(s);
-			// System.out.println("curr:" + s + " -> " + index);
 			DomNodeList<HtmlElement> sub = cell.getElementsByTagName("table");
 			if (sub.size() == 1) {
 				String text = cell.getTextContent();

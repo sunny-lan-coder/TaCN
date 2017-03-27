@@ -1,14 +1,10 @@
 package tk.sunnylan.tacn.gui.taui1;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Map.Entry;
 
-import com.jfoenix.controls.JFXDrawer;
-
-import javafx.animation.Transition;
 import tk.sunnylan.tacn.parse.ChangeType;
 import tk.sunnylan.tacn.parse.SubjectChange;
 import tk.sunnylan.tacn.parse.Update;
@@ -42,19 +38,6 @@ public class Util {
 			dir.delete();
 		} else {
 			dir.delete();
-		}
-	}
-
-	public static Transition getDrawerTransition(JFXDrawer drawer) {
-		try {
-			Class<?> c = drawer.getClass();
-			Field drawerTrans = c.getDeclaredField("drawerTransition");
-			drawerTrans.setAccessible(true);
-			return (Transition) drawerTrans.get(drawer);
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
 		}
 	}
 

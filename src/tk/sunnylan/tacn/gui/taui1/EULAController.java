@@ -15,7 +15,7 @@ public class EULAController {
     @FXML
     public void initialize(){
     	p("Terms and Conditions:");
-    	
+    	p("By clicking 'I Accept', you agree to the following Terms and conditions\n");
     }
     
     private void p(String s){

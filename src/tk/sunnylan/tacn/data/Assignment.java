@@ -54,9 +54,9 @@ public class Assignment {
 		return marks.get(section);
 	}
 
-	public void addMark(Mark mark, String section) throws Exception {
+	public void addMark(Mark mark, String section){
 		if (marks.containsKey(section))
-			throw new Exception("There is already a mark in that section");
+			throw new IllegalArgumentException("There is already a mark in that section");
 		marks.put(section, mark);
 	}
 

@@ -6,7 +6,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import tk.sunnylan.tacn.tst.CONFIG;
+import tk.sunnylan.tacn.tst.DEBUG_CONFIG;
 
 public class TALoginClient {
 	static final String TA_URL = "https://ta.yrdsb.ca/";
@@ -33,8 +33,8 @@ public class TALoginClient {
 		client.getOptions().setThrowExceptionOnScriptError(false);
 		client.getOptions().setCssEnabled(true);
 
-		if (CONFIG.DEBUG_MODE && CONFIG.USE_PROXY) {
-			ProxyConfig proxyConfig = new ProxyConfig(CONFIG.PROXY_HOST, CONFIG.PROXY_PORT);
+		if (DEBUG_CONFIG.DEBUG_MODE && DEBUG_CONFIG.USE_PROXY) {
+			ProxyConfig proxyConfig = new ProxyConfig(DEBUG_CONFIG.PROXY_HOST, DEBUG_CONFIG.PROXY_PORT);
 			client.getOptions().setProxyConfig(proxyConfig);
 			client.getOptions().setUseInsecureSSL(true);
 		}
