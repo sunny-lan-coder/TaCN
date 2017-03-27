@@ -44,6 +44,7 @@ public class TASession {
 		} else {
 			page = login(r);
 		}
+		
 		refreshSubPages(page);
 	}
 

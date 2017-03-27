@@ -21,7 +21,7 @@ public class Parse {
 	static final int MARKTABLE_SECTION_ROW = 0;
 	static final String WEIGHT_KEYWORD = "weight=";
 
-	static final String WEIGHTTABLE_KEYWORD = "Course Weighting";
+	static final String WEIGHTTABLE_KEYWORD = "Course.Weighting";
 	static final int WEIGHTTABLE_HEADER_ROW = 0;
 	static final int WEIGHTTABLE_NAME_COL = 0;
 	static final int WEIGHTTABLE_WEIGHT_COL = 2;
@@ -38,11 +38,12 @@ public class Parse {
 	public static SubjectChange parseSubject(Document page, Subject s) throws Exception {
 		SubjectChange changes = new SubjectChange();
 		Element tableMarks = page.select("th:contains(" + MARKTABLE_KEYWORD + ")").first().parent().parent();
-		Elements l = page.select("table > tbody > tr > th:contains(" + WEIGHTTABLE_KEYWORD + ")");
+		Elements l = page.select("th:contains(course), th:contains(weighting)");
 		Element tableWeights = null;
-		if (l.size() > 0)
+		if (l.size() > 0){
 			tableWeights=l.first().parent().parent().parent();
-
+		}
+		
 		// TODO error checking
 
 		Elements rows = tableMarks.select(":root > tr");
@@ -103,7 +104,7 @@ public class Parse {
 		if (tableWeights != null) {
 
 			// look for weights
-			Elements weightRows = tableWeights.select(":root > tr");
+			Elements weightRows = tableWeights.select(":root > tbody > tr");
 			for (int i = 0; i < weightRows.size(); i++) {
 				if (i == WEIGHTTABLE_HEADER_ROW)
 					continue;

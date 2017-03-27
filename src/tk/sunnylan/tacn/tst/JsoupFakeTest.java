@@ -10,14 +10,14 @@ public class JsoupFakeTest {
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("Logging in...");
-		TASession login=new TASession("zxc", "zxc");
+		TASession login=new TASession("vcxz", "vcxz");
 		System.out.println("Loading main page.");
 		for(Document doc:login.subpages){
 			String name=Parse.getCourseCode(doc);
 			System.out.println(name);
 			Subject s=new Subject(name);
 			Parse.parseSubject(doc, s);
-			System.out.println(s.toString());
+			System.out.println(s.weights.toString());
 		}
 		
 		

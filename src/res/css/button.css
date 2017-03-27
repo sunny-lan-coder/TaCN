@@ -1,0 +1,9 @@
+.jbtn-selected {
+	-fx-background-color: rgba(0, 150, 0, 0.6);
+	-fx-text-fill:white;
+}
+
+.jbtn-deselected {
+	-fx-background-color: rgba(0, 150, 0, 0);
+	-fx-text-fill:black;
+}

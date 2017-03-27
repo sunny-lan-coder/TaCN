@@ -55,19 +55,22 @@ public class TAUI1 extends Application {
 	private HashMap<String, ProfileLoadInfo> profiles;
 
 	private Label empty;
+	private Scene selectionScreen;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		
 		System.out.println("Initializing UI...");
 		primaryStage.setTitle("Tyanide");
 		primaryStage.setWidth(1280);
 		primaryStage.setHeight(720);
+		primaryStage.setMaximized(true);
 		this.primaryStage = primaryStage;
-		FXMLLoader mahLoader ;
+		FXMLLoader mahLoader;
 		Pane mainPane = new StackPane(new JFXSpinner());
 		loadingScene = new Scene(mainPane, 1280, 720);
 		System.out.println("  Scene 1 loaded");
-		
+
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
 		mainPane = mahLoader.load();
 		loginScene = new Scene(mainPane, 1280, 720);
@@ -77,7 +80,7 @@ public class TAUI1 extends Application {
 		primaryStage.setScene(loadingScene);
 		primaryStage.show();
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("ProfileSelectionScreen.fxml"));
-		Scene selectionScreen = new Scene(mahLoader.load());
+		selectionScreen = new Scene(mahLoader.load());
 		selectionController = mahLoader.getController();
 		System.out.println("  Scene 3 loaded");
 		selectionController.btnLoginNew.setOnAction(e -> {
@@ -88,14 +91,17 @@ public class TAUI1 extends Application {
 				public void successfulLogin(TASession loggedIn) {
 					SessionView view;
 					try {
-						ProfileLoadInfo p = new ProfileLoadInfo(loggedIn.user + " - new session", false);
+						String name=loggedIn.user + " - temporary session";
+						while(profiles.containsKey(name))
+							name+=Util.genRandomProfileName(3);
+						ProfileLoadInfo p = new ProfileLoadInfo(name, false);
 						p.password = loggedIn.pass;
 						p.username = loggedIn.user;
 						view = SessionView.createSessionView(p, TAUI1.this);
 
 						setScene(view);
 						view.tasession = loggedIn;
-						view.startSync();
+						view.trySync();
 					} catch (IOException | ParserConfigurationException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -128,14 +134,14 @@ public class TAUI1 extends Application {
 				}
 			}
 		});
-		
+
 		icon = new TrayIcon(ImageIO.read(TAUI1.class.getResource("/res/img/ico.png")), "Tyanide Sync");
 		icon.addActionListener((e) -> Platform.runLater(() -> primaryStage.show()));
 		System.out.println("UI loaded");
-		
+
 		loadProfiles();
 		System.out.println("Profiles loaded");
-		
+
 		primaryStage.setScene(selectionScreen);
 
 		System.out.println("Done.");
@@ -143,6 +149,7 @@ public class TAUI1 extends Application {
 
 	private void loadProfiles() throws IOException, ParserConfigurationException, SAXException {
 		profiles = new HashMap<>();
+		profileLinks=new HashMap<>();
 		selectionController.profileLinks.getChildren().clear();
 		if (!Files.exists(Paths.get(cachepath + "profiles.xml"))) {
 			saveProfiles();
@@ -164,6 +171,8 @@ public class TAUI1 extends Application {
 			initProfileLink(p.profileName);
 		}
 	}
+	
+	private HashMap<String , Hyperlink> profileLinks;
 
 	private void initProfileLink(String profileName) {
 		Hyperlink lnk = new Hyperlink(profileName);
@@ -177,6 +186,7 @@ public class TAUI1 extends Application {
 			}
 
 		});
+		profileLinks.put(profileName, lnk);
 		selectionController.profileLinks.getChildren().add(lnk);
 	}
 
@@ -190,6 +200,10 @@ public class TAUI1 extends Application {
 		}
 		writer.write("</isis>");
 		writer.close();
+	}
+
+	public void showSelectionScene() {
+		setScene(selectionScreen);
 	}
 
 	public void openLoginPage(ILoginListener listener, Scene ret, String... user) {
@@ -234,9 +248,20 @@ public class TAUI1 extends Application {
 		primaryStage.setWidth(prevW2);
 		primaryStage.setHeight(prevH2);
 	}
+	
+	public void addProfile(ProfileLoadInfo p){
+		profiles.put(p.profileName, p);
+		initProfileLink(p.profileName);
+	}
+	
+	public void removeProfile(ProfileLoadInfo p){
+		selectionController.profileLinks.getChildren().remove(profileLinks.get(p.profileName));
+		profileLinks.remove(p.profileName);
+		profiles.remove(p.profileName);
+	}
 
 	public static void main(String[] args) {
-		System.out.println("launching...");
+		System.out.println("Launching Tyanide...");
 		launch(args);
 	}
 }

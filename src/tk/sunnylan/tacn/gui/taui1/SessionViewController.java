@@ -7,9 +7,11 @@ import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.transitions.hamburger.HamburgerBackArrowBasicTransition;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class SessionViewController {
 
@@ -22,8 +24,8 @@ public class SessionViewController {
 	@FXML
 	public StackPane contentPane;
 
-    @FXML
-    public JFXTextField txtSessionName;
+	@FXML
+	public JFXTextField txtSessionName;
 
 	@FXML
 	public VBox vboxLinks;
@@ -46,13 +48,16 @@ public class SessionViewController {
 	private HamburgerBackArrowBasicTransition burgerTask;
 
 	@FXML
+	public Hyperlink lnkCloseSession;
+
+	@FXML
 	public void initialize() {
 		courseDrawer.setSidePane(vboxDrawer);
 		burgerTask = new HamburgerBackArrowBasicTransition(hamOpenMenu);
-		burgerTask.setRate(-2);
-		Util.getDrawerTransition(courseDrawer).setRate(2);
+		burgerTask.setRate(1);
+		burgerTask.setDelay(Duration.seconds(0.5));
+		burgerTask.play();
 		courseDrawer.open();
-//		System.out.println("controller initalize");
 	}
 
 	@FXML

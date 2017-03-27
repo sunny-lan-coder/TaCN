@@ -55,6 +55,7 @@ public class SessionView extends Scene {
 	private Thread refreshthread;
 	private TAUI1 context;
 	private ProfileLoadInfo profile;
+	private JFXButton lastClicked;
 	public TASession tasession;
 
 	private StackPane emptySubjectsPane;
@@ -106,19 +107,22 @@ public class SessionView extends Scene {
 			setSaveCredentials();
 		}
 		if (profile.isSynced) {
-			tryLogin();
+			trySync();
 		}
 	}
 
 	private void initUI() {
+//		this.getStylesheets().add("res/css/button.css");
 		controller.txtSessionName.setText(profile.profileName);
 		controller.txtSessionName.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER) {
-				if (tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(controller.txtSessionName.getText()).isEmpty()) {
+				if (tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(controller.txtSessionName.getText())
+						.isEmpty()) {
 					controller.txtSessionName.setText(profile.profileName);
 					return;
 				}
 				profile.profileName = controller.txtSessionName.getText();
+				controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
 				try {
 					context.saveProfiles();
 				} catch (FileNotFoundException e1) {
@@ -129,6 +133,7 @@ public class SessionView extends Scene {
 			}
 
 		});
+		controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
 		Label emptySubjectsLbl = new Label("No subjects loaded");
 		emptySubjectsLbl.setWrapText(true);
 		emptySubjectsLbl.setPadding(new Insets(10, 0, 10, 0));
@@ -141,8 +146,9 @@ public class SessionView extends Scene {
 			if (!controller.radioSync.selectedProperty().get()) {
 				stopSync();
 			} else {
-				tryLogin();
+				trySync();
 			}
+			this.getRoot().requestFocus();
 		});
 
 		controller.radioStoreOffline.setOnAction(e -> {
@@ -155,13 +161,17 @@ public class SessionView extends Scene {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			this.getRoot().requestFocus();
 		});
+
+		controller.lnkCloseSession.setOnAction(e -> exit());
 
 		controller.radioStoreCreds.setOnAction(e -> {
 			if (controller.radioStoreCreds.isSelected())
 				setSaveCredentials();
 			else
 				unsetSaveCredentials();
+			this.getRoot().requestFocus();
 		});
 
 		controller.contentPane.getChildren().add(new Label("No subject selected"));
@@ -193,12 +203,6 @@ public class SessionView extends Scene {
 		controller.radioStoreCreds.setSelected(false);
 	}
 
-	private void stopSync() {
-		if (refreshthread != null)
-			refreshthread.interrupt();
-		endNotifications();
-	}
-
 	private SystemTray tray;
 
 	private void initNotifications() throws AWTException {
@@ -225,6 +229,8 @@ public class SessionView extends Scene {
 				profile.cachepath += Util.genRandomProfileName(10);
 			saveCache();
 			profile.isCached = true;
+			System.out.println("putting");
+			context.addProfile(profile);
 		}
 		try {
 			context.saveProfiles();
@@ -238,6 +244,8 @@ public class SessionView extends Scene {
 		if (profile.isCached) {
 			Util.removeDirectory(new File(context.cachepath + profile.cachepath));
 			profile.isCached = false;
+			System.out.println("removing");
+			context.removeProfile(profile);
 		}
 		try {
 			context.saveProfiles();
@@ -296,8 +304,11 @@ public class SessionView extends Scene {
 		}
 	}
 
-	private void tryLogin() {
+	public void trySync() {
+		controller.radioSync.setDisable(true);
 		if (tasession != null) {
+			profile.username = tasession.user;
+			profile.password = tasession.pass;
 			controller.radioStoreCreds.setDisable(false);
 			startSync();
 			return;
@@ -308,13 +319,12 @@ public class SessionView extends Scene {
 			new Thread(() -> {
 				try {
 					tasession = new TASession(profile.username, profile.password);
+					Platform.runLater(() -> controller.radioStoreCreds.setDisable(false));
 					startSync();
 				} catch (Exception e) {
 					e.printStackTrace();
-					Platform.runLater(() -> {
-						controller.radioSync.setSelected(false);
-						context.hideLoadingScreen();
-					});
+					stopSync();
+					Platform.runLater(() -> context.hideLoadingScreen());
 				}
 			}).start();
 			return;
@@ -324,22 +334,17 @@ public class SessionView extends Scene {
 
 			@Override
 			public void successfulLogin(TASession loggedIn) {
-				SessionView.this.tasession = loggedIn;
-				profile.username = loggedIn.user;
-				profile.password = loggedIn.pass;
+				tasession = loggedIn;
+
+				profile.username = tasession.user;
+				profile.password = tasession.pass;
 				controller.radioStoreCreds.setDisable(false);
-				try {
-					context.saveProfiles();
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				startSync();
 			}
 
 			@Override
 			public void loginCancelled() {
-				controller.radioSync.setSelected(false);
+				stopSync();
 			}
 
 		};
@@ -352,7 +357,8 @@ public class SessionView extends Scene {
 		});
 	}
 
-	public void startSync() {
+	private void startSync() {
+		profile.isSynced = true;
 		try {
 			initNotifications();
 		} catch (AWTException e) {
@@ -361,6 +367,7 @@ public class SessionView extends Scene {
 		}
 
 		try {
+			context.saveProfiles();
 			refreshthread = new Thread(() -> refreshLoop());
 			refreshthread.start();
 		} catch (Exception e) {
@@ -369,8 +376,27 @@ public class SessionView extends Scene {
 
 		Platform.runLater(() -> {
 			context.hideLoadingScreen();
-			Platform.runLater(() -> controller.radioSync.setSelected(true));
+			controller.radioSync.setDisable(false);
+			controller.radioSync.setSelected(true);
+			this.getRoot().requestFocus();
 		});
+	}
+
+	private void stopSync() {
+		profile.isSynced = false;
+		try {
+			context.saveProfiles();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		if (refreshthread != null)
+			refreshthread.interrupt();
+		Platform.runLater(() -> {
+			controller.radioSync.setDisable(false);
+			controller.radioSync.setSelected(false);
+			this.getRoot().requestFocus();
+		});
+		endNotifications();
 	}
 
 	private void refreshLoop() {
@@ -408,6 +434,19 @@ public class SessionView extends Scene {
 			}
 		}
 
+	}
+
+	private void exit() {
+		if (profile.isSynced) {
+			if (refreshthread != null)
+				refreshthread.interrupt();
+			endNotifications();
+		}
+
+		if (profile.isCached)
+			saveCache();
+
+		context.showSelectionScene();
 	}
 
 	private Update getUpdates() throws Exception {
@@ -459,13 +498,22 @@ public class SessionView extends Scene {
 		JFXButton btn = new JFXButton(p.pageTitle);
 		btn.setMaxWidth(Double.MAX_VALUE);
 		btn.setPrefHeight(40);
+		
 		btn.setFont(new Font(btn.getFont().getName(), 16));
 		buttons.put(p.pageTitle, btn);
+		btn.getStylesheets().add("res/css/button.css");
 		controller.vboxLinks.getChildren().add(btn);
 		_pages.put(p.pageTitle, p);
 		btn.setOnAction(e -> {
+			if(lastClicked!=null){
+				lastClicked.getStyleClass().remove("jbtn-selected");
+				lastClicked.getStyleClass().add("jbtn-deselected");
+			}
 			controller.contentPane.getChildren().setAll(p.pageContent.getRoot());
 			controller.stackMenuItems.getChildren().setAll(p.menu);
+			btn.getStyleClass().remove("jbtn-deselected");
+			btn.getStyleClass().add("jbtn-selected");
+			lastClicked=btn;
 		});
 	}
 
