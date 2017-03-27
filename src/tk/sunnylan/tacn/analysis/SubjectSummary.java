@@ -30,6 +30,7 @@ public class SubjectSummary {
 				if (curr.containsMark(section)) {
 					Mark m = curr.getMark(section);
 					totalWeight += m.getWeight();
+				if(m.getWeight()!=0)
 					totalPercent += m.percentage() * m.getWeight();
 				}
 			}

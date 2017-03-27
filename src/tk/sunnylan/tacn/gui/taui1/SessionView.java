@@ -112,7 +112,7 @@ public class SessionView extends Scene {
 	}
 
 	private void initUI() {
-//		this.getStylesheets().add("res/css/button.css");
+		// this.getStylesheets().add("res/css/button.css");
 		controller.txtSessionName.setText(profile.profileName);
 		controller.txtSessionName.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER) {
@@ -214,11 +214,13 @@ public class SessionView extends Scene {
 		}
 
 		tray.add(context.icon);
+		context.keepopen = true;
 	}
 
 	private void endNotifications() {
 		if (tray != null)
 			tray.remove(context.icon);
+		context.keepopen = false;
 	}
 
 	private void enableCache() {
@@ -319,13 +321,15 @@ public class SessionView extends Scene {
 			new Thread(() -> {
 				try {
 					tasession = new TASession(profile.username, profile.password);
-					Platform.runLater(() -> controller.radioStoreCreds.setDisable(false));
 					startSync();
 				} catch (Exception e) {
 					e.printStackTrace();
 					stopSync();
-					Platform.runLater(() -> context.hideLoadingScreen());
 				}
+				Platform.runLater(() -> {
+					controller.radioStoreCreds.setDisable(false);
+					context.hideLoadingScreen();
+				});
 			}).start();
 			return;
 		}
@@ -375,7 +379,6 @@ public class SessionView extends Scene {
 		}
 
 		Platform.runLater(() -> {
-			context.hideLoadingScreen();
 			controller.radioSync.setDisable(false);
 			controller.radioSync.setSelected(true);
 			this.getRoot().requestFocus();
@@ -396,6 +399,13 @@ public class SessionView extends Scene {
 			controller.radioSync.setSelected(false);
 			this.getRoot().requestFocus();
 		});
+		if (tasession != null)
+			try {
+				tasession.logout();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		endNotifications();
 	}
 
@@ -445,6 +455,14 @@ public class SessionView extends Scene {
 
 		if (profile.isCached)
 			saveCache();
+
+		if (tasession != null)
+			try {
+				tasession.logout();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		context.showSelectionScene();
 	}
@@ -498,14 +516,14 @@ public class SessionView extends Scene {
 		JFXButton btn = new JFXButton(p.pageTitle);
 		btn.setMaxWidth(Double.MAX_VALUE);
 		btn.setPrefHeight(40);
-		
+
 		btn.setFont(new Font(btn.getFont().getName(), 16));
 		buttons.put(p.pageTitle, btn);
 		btn.getStylesheets().add("res/css/button.css");
 		controller.vboxLinks.getChildren().add(btn);
 		_pages.put(p.pageTitle, p);
 		btn.setOnAction(e -> {
-			if(lastClicked!=null){
+			if (lastClicked != null) {
 				lastClicked.getStyleClass().remove("jbtn-selected");
 				lastClicked.getStyleClass().add("jbtn-deselected");
 			}
@@ -513,7 +531,7 @@ public class SessionView extends Scene {
 			controller.stackMenuItems.getChildren().setAll(p.menu);
 			btn.getStyleClass().remove("jbtn-deselected");
 			btn.getStyleClass().add("jbtn-selected");
-			lastClicked=btn;
+			lastClicked = btn;
 		});
 	}
 

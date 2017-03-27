@@ -40,10 +40,10 @@ public class Parse {
 		Element tableMarks = page.select("th:contains(" + MARKTABLE_KEYWORD + ")").first().parent().parent();
 		Elements l = page.select("th:contains(course), th:contains(weighting)");
 		Element tableWeights = null;
-		if (l.size() > 0){
-			tableWeights=l.first().parent().parent().parent();
+		if (l.size() > 0) {
+			tableWeights = l.first().parent().parent().parent();
 		}
-		
+
 		// TODO error checking
 
 		Elements rows = tableMarks.select(":root > tr");
@@ -64,10 +64,8 @@ public class Parse {
 		for (int i = 0; i < rows.size(); i++) {
 			if (i == MARKTABLE_SECTION_ROW)
 				continue;
-			Elements currRow = rows.get(i).select(":root > td");
-			String name = currRow.get(MARKTABLE_NAME_COL).text();
-			if (name.isEmpty())
-				continue;
+			Elements cells = rows.get(i).select(":root > td");
+			String name = cells.get(MARKTABLE_NAME_COL).text();
 			Assignment a;
 			boolean flag = false;
 			if (s.containsAssignment(name)) {
@@ -136,7 +134,6 @@ public class Parse {
 			Elements sub = cell.select(":root > table");
 			if (sub.size() == 1) {
 				String text = cell.text();
-
 				Mark m;
 				MarkChange res;
 				if (a.containsMark(s)) {
@@ -174,32 +171,41 @@ public class Parse {
 	private static MarkChange _parseMark(Mark m, String text) {
 		boolean changed = false;
 		try {
-			String[] tmp1 = text.split("/");
-			String[] tmp2 = tmp1[1].split("=");
-			String x = tmp1[0].trim();
-			String y = tmp2[0].trim();
+			
 
 			double weight;
-			if (text.contains("no")) {
-				weight = 0;
-			} else {
-				weight = Double
-						.parseDouble(text.substring(text.indexOf(WEIGHT_KEYWORD) + WEIGHT_KEYWORD.length()).trim());
-			}
-			double num;
-			if (x.isEmpty()) {
-				num = 0;
-				weight = 0;
-			} else {
-				num = Double.parseDouble(x);
-			}
+
 			double den;
 
-			if (y.isEmpty()) {
-				den = 0;
+			double num;
+			if (text.contains("no mark")) {
 				weight = 0;
+				num = 0;
+				den = 0;
 			} else {
-				den = Double.parseDouble(y);
+				String[] tmp1 = text.split("/");
+				String[] tmp2 = tmp1[1].split("=");
+				String x = tmp1[0].trim();
+				String y = tmp2[0].trim();
+				if (text.contains("no")) {
+					weight = 0;
+				} else {
+					weight = Double
+							.parseDouble(text.substring(text.indexOf(WEIGHT_KEYWORD) + WEIGHT_KEYWORD.length()).trim());
+				}
+				if (x.isEmpty()) {
+					num = 0;
+					weight = 0;
+				} else {
+					num = Double.parseDouble(x);
+				}
+
+				if (y.isEmpty()) {
+					den = 0;
+					weight = 0;
+				} else {
+					den = Double.parseDouble(y);
+				}
 			}
 
 			if (m.getDenominator() != den)
@@ -208,10 +214,12 @@ public class Parse {
 				changed = true;
 			if (m.getWeight() != weight)
 				changed = true;
+
 			m.updateNumerator(num);
 			m.updateDenominator(den);
 			m.updateWeight(weight);
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			return new MarkChange(false, changed);
 		}
 		return new MarkChange(true, changed);

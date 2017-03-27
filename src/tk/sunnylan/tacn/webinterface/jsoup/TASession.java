@@ -1,5 +1,6 @@
 package tk.sunnylan.tacn.webinterface.jsoup;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.jsoup.Connection.Method;
@@ -20,6 +21,7 @@ public class TASession {
 	private static final String HOMEPAGE_FILE = "listReports.php";
 	private static final String ERROR_KEYWORD = "?error_message=";
 	private static final String KEYWORD_TABLE = "Course Name";
+	private static final String LOGOUT_PAGE="live/students/logout.php";
 	private static final int LINK_COL = 2;
 	private static final int HEADER_COL = 0;
 	public String user;
@@ -31,7 +33,6 @@ public class TASession {
 	public TASession(String user, String pass) throws Exception {
 		this.user = user;
 		this.pass = pass;
-
 		refresh();
 	}
 
@@ -44,7 +45,7 @@ public class TASession {
 		} else {
 			page = login(r);
 		}
-		
+
 		refreshSubPages(page);
 	}
 
@@ -52,13 +53,16 @@ public class TASession {
 		r = Util.mask(Jsoup.connect(r.url().toString()).followRedirects(true)
 				.data("subject_id", "0", USER_INPUT, user, PASS_INPUT, pass, "submit", "Login").method(Method.POST))
 				.execute();
-		if (r.url().toString().contains(HOMEPAGE_FILE)) {
-			student_id=r.cookie(STUDENT_ID_COOKIE);
-			session_token=r.cookie(SESSION_TOKEN_COOKIE);
+//		System.out.println(r.url());
+//		System.out.println(r.headers().toString());
+		if (!r.url().toString().contains(LOGIN_ACCEPTOR)) {
+			student_id = r.cookie(STUDENT_ID_COOKIE);
+			session_token = r.cookie(SESSION_TOKEN_COOKIE);
 			return r.parse();
 		}
 		// determine error
 		String loc = r.header("location");
+//		System.out.println("error");
 		if (loc.contains(ERROR_KEYWORD)) {
 			String errId = loc.substring(loc.indexOf(ERROR_KEYWORD));
 			if (errId.equals(ERR_INVALID))
@@ -80,15 +84,24 @@ public class TASession {
 		for (int i = 0; i < rows.size(); i++) {
 			if (i == HEADER_COL)
 				continue;
-			Element col = rows.get(i).select("td").get(LINK_COL);
-			Elements links = col.select("a");
-			for (Element link : links) {
-				subpages.add(Util
-						.mask(Jsoup.connect(link.absUrl("href")).followRedirects(true)
-								.cookie(STUDENT_ID_COOKIE, student_id).cookie(SESSION_TOKEN_COOKIE, session_token))
-						.get());
+			Elements cells = rows.get(i).select("td");
+			if (cells.size() > LINK_COL) {
+				Element col = cells.get(LINK_COL);
+				Elements links = col.select("a");
+				for (Element link : links) {
+					subpages.add(Util
+							.mask(Jsoup.connect(link.absUrl("href")).followRedirects(true)
+									.cookie(STUDENT_ID_COOKIE, student_id).cookie(SESSION_TOKEN_COOKIE, session_token))
+							.get());
+				}
 			}
 		}
+	}
+	
+	public void logout() throws IOException{
+		session_token="";
+		student_id="";
+		Util.mask(Jsoup.connect(TA_URL+LOGOUT_PAGE)).execute();
 	}
 
 }

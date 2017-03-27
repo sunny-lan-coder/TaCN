@@ -69,6 +69,7 @@ public class LoginController {
 					txtPassword.clear();
 					lblInvalid.setOpacity(1);
 				});
+				e.printStackTrace();
 			}
 			Platform.runLater(() -> {
 				btnLogin.setOpacity(1);

@@ -36,6 +36,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.tst.CONFIG;
+import tk.sunnylan.tacn.tst.SSLUtilities;
 import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class TAUI1 extends Application {
@@ -56,6 +57,8 @@ public class TAUI1 extends Application {
 
 	private Label empty;
 	private Scene selectionScreen;
+	
+	public boolean keepopen=false;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -89,7 +92,7 @@ public class TAUI1 extends Application {
 
 				@Override
 				public void successfulLogin(TASession loggedIn) {
-					SessionView view;
+					
 					try {
 						String name=loggedIn.user + " - temporary session";
 						while(profiles.containsKey(name))
@@ -97,14 +100,14 @@ public class TAUI1 extends Application {
 						ProfileLoadInfo p = new ProfileLoadInfo(name, false);
 						p.password = loggedIn.pass;
 						p.username = loggedIn.user;
-						view = SessionView.createSessionView(p, TAUI1.this);
-
-						setScene(view);
+						SessionView view = SessionView.createSessionView(p, TAUI1.this);
 						view.tasession = loggedIn;
 						view.trySync();
+						setScene(view);
 					} catch (IOException | ParserConfigurationException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+						setScene(selectionScreen);
 					}
 				}
 
@@ -128,9 +131,11 @@ public class TAUI1 extends Application {
 			public void handle(WindowEvent event) {
 				if (CONFIG.DEBUG_MODE) {
 					System.exit(0);
-				} else {
+				} else if(keepopen) {
 					event.consume();
 					primaryStage.hide();
+				}else{
+					System.exit(0);
 				}
 			}
 		});
@@ -236,12 +241,16 @@ public class TAUI1 extends Application {
 	}
 
 	public void hideLoadingScreen() {
-		if (lastScene != null)
+		if (lastScene != null){
 			setScene(lastScene);
+			lastScene=null;
+		}else{
+			System.out.println("tried to hide but was null");
+			throw new NullPointerException();
+		}
 	}
 
 	private void setScene(Scene s) {
-
 		double prevH2 = primaryStage.getHeight();
 		double prevW2 = primaryStage.getWidth();
 		primaryStage.setScene(s);
@@ -261,6 +270,14 @@ public class TAUI1 extends Application {
 	}
 
 	public static void main(String[] args) {
+		if(CONFIG.USE_PROXY){
+			SSLUtilities.trustAllHostnames();
+			SSLUtilities.trustAllHttpsCertificates();
+			System.setProperty("http.proxyHost", CONFIG.PROXY_HOST); // set proxy server
+			 System.setProperty("http.proxyPort",CONFIG.PROXY_PORT+"");  //set proxy port
+			 System.setProperty("https.proxyHost", CONFIG.PROXY_HOST); // set proxy server
+			 System.setProperty("https.proxyPort",CONFIG.PROXY_PORT+"");  //set proxy port
+		}
 		System.out.println("Launching Tyanide...");
 		launch(args);
 	}
