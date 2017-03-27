@@ -9,9 +9,9 @@ import java.util.Map.Entry;
 import com.jfoenix.controls.JFXDrawer;
 
 import javafx.animation.Transition;
-import tk.sunnylan.tacn.parse.htmlunit.ChangeType;
-import tk.sunnylan.tacn.parse.htmlunit.SubjectChange;
-import tk.sunnylan.tacn.parse.htmlunit.Update;
+import tk.sunnylan.tacn.parse.ChangeType;
+import tk.sunnylan.tacn.parse.SubjectChange;
+import tk.sunnylan.tacn.parse.Update;
 
 public class Util {
 	public static void antiAlias() {

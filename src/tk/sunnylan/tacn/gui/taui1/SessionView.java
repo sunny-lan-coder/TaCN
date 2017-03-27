@@ -40,9 +40,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
 import tk.sunnylan.tacn.data.Subject;
+import tk.sunnylan.tacn.parse.SubjectChange;
+import tk.sunnylan.tacn.parse.Update;
 import tk.sunnylan.tacn.parse.htmlunit.Parse;
-import tk.sunnylan.tacn.parse.htmlunit.SubjectChange;
-import tk.sunnylan.tacn.parse.htmlunit.Update;
 import tk.sunnylan.tacn.webinterface.htmlunit.TALoginClient;
 import tk.sunnylan.tacn.webinterface.htmlunit.TASession;
 

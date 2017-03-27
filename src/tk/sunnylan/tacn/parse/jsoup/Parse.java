@@ -1,23 +1,19 @@
-package tk.sunnylan.tacn.parse.htmlunit;
+package tk.sunnylan.tacn.parse.jsoup;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 
-import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.DomNodeList;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlTable;
-import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
-import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import tk.sunnylan.tacn.data.Assignment;
 import tk.sunnylan.tacn.data.Mark;
 import tk.sunnylan.tacn.data.Subject;
 import tk.sunnylan.tacn.parse.ChangeType;
 import tk.sunnylan.tacn.parse.SubjectChange;
+import tk.sunnylan.tacn.parse.htmlunit.Util;
 
 public class Parse {
 	static final String MARKTABLE_KEYWORD = "Assignment";
@@ -30,50 +26,45 @@ public class Parse {
 	static final int WEIGHTTABLE_NAME_COL = 0;
 	static final int WEIGHTTABLE_WEIGHT_COL = 2;
 
-	public static String getCourseCode(HtmlPage page) {
-		return page.getElementsByTagName("h2").get(0).getTextContent();
+	public static String getCourseCode(Document page) {
+		return page.select("div.green_border_message.box > div > div > h2").first().text();
 	}
 
-	public static SubjectChange parseSubject(HtmlPage page, Subject s) throws Exception {
+	public static boolean parseMark(Mark m, String text) {
+		return _parseMark(m, text).output;
+
+	}
+
+	public static SubjectChange parseSubject(Document page, Subject s) throws Exception {
 		SubjectChange changes = new SubjectChange();
-		DomNodeList<DomElement> tables = page.getElementsByTagName("table");
-		HtmlTable tableMarks = null;
-		HtmlTable tableWeights = null;
-		for (DomElement elem : tables) {
-			HtmlTable table = (HtmlTable) elem;
-			DomNodeList<HtmlElement> headers = table.getElementsByTagName("th");
+		Element tableMarks = page.select("th:contains(" + MARKTABLE_KEYWORD + ")").first().parent().parent();
+		Elements l = page.select("table > tbody > tr > th:contains(" + WEIGHTTABLE_KEYWORD + ")");
+		Element tableWeights = null;
+		if (l.size() > 0)
+			tableWeights=l.first().parent().parent().parent();
 
-			if (elem.asText().contains(WEIGHTTABLE_KEYWORD)) {
-				tableWeights = table;
-			}
+		// TODO error checking
 
-			if (tableMarks == null)
-				for (HtmlElement e : headers) {
-					if (e.getTextContent().contains(MARKTABLE_KEYWORD)) {
-						tableMarks = table;
-					}
-				}
-		}
-		if (tableMarks == null)
-			throw new Exception("Cannot find mark table");
+		Elements rows = tableMarks.select("tr");
 
-		HtmlTableRow firstRow = tableMarks.getRow(MARKTABLE_SECTION_ROW);
+		Elements sectionRow = rows.get(MARKTABLE_SECTION_ROW).select("td, th");
 		int idx = 0;
-		for (HtmlTableCell cell : firstRow.getCells()) {
+		for (Element cell : sectionRow) {
 			if (idx == MARKTABLE_NAME_COL) {
 				idx++;
 				continue;
 			}
-			s.sections.add(Util.sanitizeSectionName(cell.getTextContent()));
+			s.sections.add(Util.sanitizeSectionName(cell.text()));
 			idx++;
 		}
 
 		// compare for additions
 		HashSet<String> additions = new HashSet<>();
-		for (int i = 0; i < tableMarks.getRowCount(); i++) {
+		for (int i = 0; i < rows.size(); i++) {
 			if (i == MARKTABLE_SECTION_ROW)
 				continue;
-			String name = tableMarks.getCellAt(i, MARKTABLE_NAME_COL).getTextContent();
+			Elements currRow = rows.get(i).select("td");
+			String name = currRow.get(MARKTABLE_NAME_COL).text();
 			if (name.isEmpty())
 				continue;
 			Assignment a;
@@ -87,7 +78,7 @@ public class Parse {
 
 			}
 
-			if (updateAssignment(tableMarks, i, a))
+			if (updateAssignment(sectionRow, rows, i, a))
 				if (!flag)
 					changes.changes.put(name, ChangeType.UPDATED);
 
@@ -112,36 +103,38 @@ public class Parse {
 		if (tableWeights != null) {
 
 			// look for weights
-
-			for (int i = 0; i < tableWeights.getRowCount(); i++) {
+			Elements weightRows = tableWeights.select("tr");
+			for (int i = 0; i < weightRows.size(); i++) {
 				if (i == WEIGHTTABLE_HEADER_ROW)
 					continue;
+				Elements cells = weightRows.get(i).select("td");
 				double val = Double.parseDouble(
 						// TODO need to replace with a better section module
-						tableWeights.getCellAt(i, WEIGHTTABLE_WEIGHT_COL).asText().replace("%", "").trim());
-				s.weights.put(Util.sanitizeSectionName(tableWeights.getCellAt(i, WEIGHTTABLE_NAME_COL).asText()), val);
+						cells.get(WEIGHTTABLE_WEIGHT_COL).text().replace("%", "").trim());
+				s.weights.put(Util.sanitizeSectionName(cells.get(WEIGHTTABLE_NAME_COL).text()), val);
 			}
 		}
 		return changes;
 	}
 
-	private static boolean updateAssignment(HtmlTable table, int row, Assignment a) throws Exception {
+	private static boolean updateAssignment(Elements toprowcells, Elements tablerows, int row, Assignment a)
+			throws Exception {
 		boolean changed = false;
 		// compare for additions
 		HashSet<String> additions = new HashSet<>();
-		List<HtmlTableCell> cells = table.getRow(row).getCells();
+		Elements cells = tablerows.get(row).select(":root > td");
 
 		for (int index = 0; index < cells.size(); index++) {
 			if (index == MARKTABLE_NAME_COL) {
 				continue;
 			}
-			HtmlTableCell cell = cells.get(index);
-			String s = table.getCellAt(MARKTABLE_SECTION_ROW, index).getTextContent();
+			Element cell = cells.get(index);
+			String s = toprowcells.get(index).text();
 			s = Util.sanitizeSectionName(s);
 			// System.out.println("curr:" + s + " -> " + index);
-			DomNodeList<HtmlElement> sub = cell.getElementsByTagName("table");
+			Elements sub = cell.select("table");
 			if (sub.size() == 1) {
-				String text = cell.getTextContent();
+				String text = cell.text();
 
 				Mark m;
 				MarkChange res;
@@ -175,11 +168,6 @@ public class Parse {
 		a.timeCode = row;
 
 		return changed;
-	}
-
-	public static boolean parseMark(Mark m, String text) {
-		return _parseMark(m, text).output;
-
 	}
 
 	private static MarkChange _parseMark(Mark m, String text) {

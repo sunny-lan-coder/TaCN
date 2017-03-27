@@ -15,8 +15,7 @@ Teachassist custom client
    - Organizing code (separating UI and logic)
    
 # Issues:
- - Teachassist is able to detect the bot somehow and block it if too many requests are made
-  - Fix by using custom browser driver
+ - Exceptions are messily handled and all over the place
 
 # Stuff used:
  - Maven

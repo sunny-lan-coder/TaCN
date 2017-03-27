@@ -1,4 +1,4 @@
-package tk.sunnylan.tacn.parse.htmlunit;
+package tk.sunnylan.tacn.parse;
 
 import java.util.HashMap;
 
