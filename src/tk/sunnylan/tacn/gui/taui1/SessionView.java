@@ -245,7 +245,7 @@ if(profile.isCached){
 		context.saveProfiles();
 		loadCache();
 
-		if (profile.password!=null && profile.username!=null)
+		if (profile.isCached && profile.password!=null && profile.username!=null)
 			controller.radioStoreCreds.setDisable(false);
 		controller.radioStoreOffline.setSelected(true);
 	}
@@ -329,6 +329,7 @@ if(profile.isCached){
 		if (tasession != null) {
 			profile.username = tasession.user;
 			profile.password = tasession.pass;
+			if(profile.isCached)
 			controller.radioStoreCreds.setDisable(false);
 			startSync();
 			return;
@@ -345,6 +346,7 @@ if(profile.isCached){
 					stopSync();
 				}
 				Platform.runLater(() -> {
+					if(profile.isCached)
 					controller.radioStoreCreds.setDisable(false);
 					context.hideLoadingScreen();
 				});
@@ -360,6 +362,7 @@ if(profile.isCached){
 
 				profile.username = tasession.user;
 				profile.password = tasession.pass;
+				if(profile.isCached)
 				controller.radioStoreCreds.setDisable(false);
 				startSync();
 			}

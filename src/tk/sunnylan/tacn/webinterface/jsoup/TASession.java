@@ -57,7 +57,6 @@ public class TASession {
 		r = Util.mask(Jsoup.connect(r.url().toString()).followRedirects(true)
 				.data("subject_id", "0", USER_INPUT, user, PASS_INPUT, pass, "submit", "Login").method(Method.POST))
 				.execute();
-		System.out.println(r.body());
 		if (!r.url().toString().contains(LOGIN_ACCEPTOR)) {
 			student_id = r.cookie(STUDENT_ID_COOKIE);
 			session_token = r.cookie(SESSION_TOKEN_COOKIE);
