@@ -68,20 +68,20 @@ public class TAUI1 extends Application {
 
 		logger.info("Initializing UI...");
 		primaryStage.setTitle("Tyanide");
-		primaryStage.setWidth(1280);
-		primaryStage.setHeight(720);
+		primaryStage.setHeight(180);
+		primaryStage.setWidth(240);
 		primaryStage.setMaximized(true);
 		this.primaryStage = primaryStage;
 		FXMLLoader mahLoader;
 		Pane mainPane = new StackPane(new JFXSpinner());
-		loadingScene = new Scene(mainPane, 1280, 720);
+		loadingScene = new Scene(mainPane);
 		logger.info("  Scene 1 loaded");
 
 		primaryStage.setScene(loadingScene);
 		primaryStage.show();
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("LoginScreen.fxml"));
 		mainPane = mahLoader.load();
-		loginScene = new Scene(mainPane, 1280, 720);
+		loginScene = new Scene(mainPane);
 		loginController = mahLoader.getController();
 		logger.info("  Scene 2 loaded");
 		mahLoader = new FXMLLoader(TAUI1.class.getResource("ProfileSelectionScreen.fxml"));
@@ -137,12 +137,16 @@ public class TAUI1 extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent event) {
+				logger.info("Close request for primary stage");
 				if (CONFIG.DEBUG_MODE) {
+					logger.info("Debug mode - exiting");
 					System.exit(0);
 				} else if (keepopen) {
+					logger.info("keepopen is set - simply hiding main window");
 					event.consume();
 					primaryStage.hide();
 				} else {
+					logger.info("keepopen isn't set - closing main window");
 					System.exit(0);
 				}
 			}
@@ -160,7 +164,6 @@ public class TAUI1 extends Application {
 		}
 
 		primaryStage.setScene(selectionScreen);
-
 		logger.info("Done.");
 	}
 
@@ -171,6 +174,7 @@ public class TAUI1 extends Application {
 		if (profileLinks.size() > 0)
 			selectionController.profileLinks.getChildren().clear();
 		if (!Files.exists(Paths.get(cachepath + "profiles.xml"))) {
+			logger.info("Cache does not exist, creating new cache");
 			saveProfiles();
 			return;
 		}
@@ -187,16 +191,12 @@ public class TAUI1 extends Application {
 			profiles.put(p.profileName, p);
 			reloadProfileLink(p.profileName);
 		}
-
-		if (profileLinks.size() > 0)
-			selectionController.profileLinks.getChildren().remove(empty);
 	}
 
 	private HashMap<String, Hyperlink> profileLinks;
 
 	public void reloadProfileLink(String profileName) {
-		if(profileLinks.containsKey(profileName))
-		{
+		if (profileLinks.containsKey(profileName)) {
 			profileLinks.get(profileName).setText(profiles.get(profileName).profileName);
 			profileLinks.put(profiles.get(profileName).profileName, profileLinks.get(profileName));
 			profileLinks.remove(profileName);
@@ -216,6 +216,7 @@ public class TAUI1 extends Application {
 		});
 		profileLinks.put(profileName, lnk);
 		selectionController.profileLinks.getChildren().add(lnk);
+		selectionController.profileLinks.getChildren().remove(empty);
 	}
 
 	public void saveProfiles() {
@@ -289,7 +290,7 @@ public class TAUI1 extends Application {
 		logger.info("Adding profile " + p.profileName);
 		profiles.put(p.profileName, p);
 		reloadProfileLink(p.profileName);
-		if (profileLinks.size() > 0)
+		
 			selectionController.profileLinks.getChildren().remove(empty);
 	}
 
@@ -298,8 +299,8 @@ public class TAUI1 extends Application {
 		selectionController.profileLinks.getChildren().remove(profileLinks.get(p.profileName));
 		profileLinks.remove(p.profileName);
 		profiles.remove(p.profileName);
-		if (profileLinks.size() == 0)
-			selectionController.profileLinks.getChildren().add(empty);
+		if (profiles.size() == 0)
+			selectionController.profileLinks.getChildren().setAll(empty);
 	}
 
 	public static void main(String[] args) {
@@ -311,8 +312,7 @@ public class TAUI1 extends Application {
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unhandled exception", e);
 			JOptionPane.showMessageDialog(null, "An error occured in Tyanide. Please send the contents of "
-					+ CONFIG.logpath + " to sunny.lan.coder@gmail.com. Thank you!", "Error",
-					JOptionPane.ERROR_MESSAGE);
+					+ CONFIG.logpath + " to sunny.lan.coder@gmail.com. Thank you!", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 }

@@ -131,9 +131,10 @@ public class SessionView extends Scene {
 				String oldProfileName = profile.profileName;
 				profile.profileName = controller.txtSessionName.getText();
 				controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
-
+if(profile.isCached){
 				context.reloadProfileLink(oldProfileName);
 				context.saveProfiles();
+}
 				this.getRoot().requestFocus();
 			}
 
@@ -422,9 +423,10 @@ public class SessionView extends Scene {
 						Platform.runLater(() -> {
 							refresh(u);
 						});
-						if (context.icon != null)
+						if (context.icon != null){
 							context.icon.displayMessage(Util.summarizeUpdatesShort(u), Util.summarizeUpdates(u),
 									MessageType.INFO);
+						}
 						if (controller.radioStoreOffline.isSelected()) {
 							saveCache();
 						}

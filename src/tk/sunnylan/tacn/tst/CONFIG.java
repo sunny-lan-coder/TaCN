@@ -26,7 +26,7 @@ public class CONFIG {
 	private static final Level LOG_LEVEL = Level.ALL;
 	private static final boolean LOG_FILTER_ON = true;
 	private static final String UPDATE_SITE = "http://sunnylan.tk/tyanide/version.html";
-	private static final String CURRENT_VERSION= "2.0";
+	private static final String CURRENT_VERSION= "2.1";
 	
 
 	public static void initDebug() {
@@ -82,6 +82,7 @@ public class CONFIG {
 	}
 
 	public static void checkUpdates() {
+		logger.log(Level.INFO,"Checking for updates");
 		Document d;
 		try {
 			d = Jsoup.connect(UPDATE_SITE).get();

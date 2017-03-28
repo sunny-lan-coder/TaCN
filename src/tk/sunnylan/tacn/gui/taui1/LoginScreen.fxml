@@ -7,52 +7,58 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane prefHeight="480.0" prefWidth="640.0" style="-fx-border-color: black; -fx-border-style: solid;" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tk.sunnylan.tacn.gui.taui1.LoginController">
+
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tk.sunnylan.tacn.gui.taui1.LoginController">
    <children>
-      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="300.0" spacing="20.0">
+      <StackPane style="-fx-border-color: black; -fx-border-style: solid;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <StackPane>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="300.0" spacing="20.0">
                <children>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Login to TeachAssist">
-                     <font>
-                        <Font size="22.0" />
-                     </font>
-                  </Text>
+                  <StackPane>
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Login to TeachAssist">
+                           <font>
+                              <Font size="22.0" />
+                           </font>
+                        </Text>
+                     </children>
+                     <padding>
+                        <Insets bottom="20.0" />
+                     </padding>
+                  </StackPane>
+                  <JFXTextField fx:id="txtStudentID" alignment="TOP_LEFT" onKeyPressed="#keyPressed" promptText="Student ID" />
+                  <JFXPasswordField fx:id="txtPassword" onKeyPressed="#keyPressed" promptText="Password" />
+                  <StackPane>
+                     <children>
+                        <Label fx:id="lblInvalid" text="Error" textAlignment="CENTER" textFill="RED" textOverrun="CENTER_ELLIPSIS" />
+                     </children>
+                     <padding>
+                        <Insets top="5.0" />
+                     </padding>
+                  </StackPane>
+                  <StackPane>
+                     <children>
+                        <JFXSpinner fx:id="loadingSpinner" />
+                        <JFXButton fx:id="btnLogin" alignment="CENTER" contentDisplay="CENTER" onAction="#btnLoginClicked" prefWidth="200.0" ripplerFill="#9ecbff" style="-fx-border-style: solid;" text="Login" textAlignment="CENTER" />
+                     </children>
+                     <padding>
+                        <Insets top="5.0" />
+                     </padding>
+                  </StackPane>
+                  <StackPane>
+                     <children>
+                        <Hyperlink fx:id="linkCancel" contentDisplay="CENTER" onAction="#linkCancelClicked" text="Cancel" textAlignment="CENTER" />
+                     </children>
+                  </StackPane>
                </children>
-               <padding>
-                  <Insets bottom="20.0" />
-               </padding>
-            </StackPane>
-            <JFXTextField fx:id="txtStudentID" alignment="TOP_LEFT" onKeyPressed="#keyPressed" promptText="Student ID" />
-            <JFXPasswordField fx:id="txtPassword" onKeyPressed="#keyPressed" promptText="Password" />
-            <StackPane>
-               <children>
-                  <Label fx:id="lblInvalid" text="Error" textAlignment="CENTER" textFill="RED" textOverrun="CENTER_ELLIPSIS" />
-               </children>
-               <padding>
-                  <Insets top="5.0" />
-               </padding>
-            </StackPane>
-            <StackPane>
-               <children>
-                  <JFXSpinner fx:id="loadingSpinner" />
-                  <JFXButton fx:id="btnLogin" alignment="CENTER" contentDisplay="CENTER" onAction="#btnLoginClicked" prefWidth="200.0" ripplerFill="#9ecbff" style="-fx-border-style: solid;" text="Login" textAlignment="CENTER" />
-               </children>
-               <padding>
-                  <Insets top="5.0" />
-               </padding>
-            </StackPane>
-            <StackPane>
-               <children>
-                  <Hyperlink fx:id="linkCancel" contentDisplay="CENTER" onAction="#linkCancelClicked" text="Cancel" textAlignment="CENTER" />
-               </children>
-            </StackPane>
+            </VBox>
          </children>
-      </VBox>
+      </StackPane>
    </children>
-</StackPane>
+</AnchorPane>
