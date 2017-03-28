@@ -11,7 +11,6 @@ Teachassist custom client
  
 # Stuff currently in progress:
  1. Preparing to port to android:
-   - Porting to jsoup, which is supported for Android
    - Organizing code (separating UI and logic)
    
 # Issues:
@@ -20,5 +19,5 @@ Teachassist custom client
 # Stuff used:
  - Maven
  - JavaFX
- - HtmlUnit
+ - JSoup
  - JFoenix
