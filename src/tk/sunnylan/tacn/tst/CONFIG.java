@@ -8,9 +8,15 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class DEBUG_CONFIG {
+import javax.swing.JOptionPane;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+public class CONFIG {
 	public static final String logpath = new File("").getAbsolutePath() + "\\cache\\logs\\";
-	private static final Logger logger = Logger.getLogger(DEBUG_CONFIG.class.getName());
+	private static final Logger logger = Logger.getLogger(CONFIG.class.getName());
 	// REMEMBER TO SET THIS TO FALSE!!! WILL DISABLE SSL IF SET TO TRUE
 	public static final boolean USE_PROXY = false;
 	public static final boolean DEBUG_MODE = false;
@@ -19,6 +25,9 @@ public class DEBUG_CONFIG {
 	public static final int PROXY_PORT = 8888;
 	private static final Level LOG_LEVEL = Level.ALL;
 	private static final boolean LOG_FILTER_ON = true;
+	private static final String UPDATE_SITE = "http://sunnylan.tk/tyanide/version.html";
+	private static final String CURRENT_VERSION= "2.0";
+	
 
 	public static void initDebug() {
 		try {
@@ -29,7 +38,7 @@ public class DEBUG_CONFIG {
 			File targetFile = new File(logpath + "\\" + "log.xml");
 			File parent = targetFile.getParentFile();
 			if (!parent.exists() && !parent.mkdirs()) {
-			    throw new IllegalStateException("Couldn't create dir: " + parent);
+				throw new IllegalStateException("Couldn't create dir: " + parent);
 			}
 			FileHandler fh = new FileHandler(logpath + "\\" + "log.xml");
 
@@ -48,28 +57,48 @@ public class DEBUG_CONFIG {
 				};
 				fh.setFilter(filt);
 			}
-			
 
 		} catch (SecurityException | IOException e) {
 			throw new RuntimeException("Could not initialize logger");
 		}
 
-		if (DEBUG_CONFIG.USE_PROXY) {
+		if (CONFIG.USE_PROXY) {
 			logger.info("WARNING: USING PROXY - CONNECTION MAY BE INSECURE");
 			SSLUtilities.trustAllHostnames();
 			SSLUtilities.trustAllHttpsCertificates();
-			System.setProperty("http.proxyHost", DEBUG_CONFIG.PROXY_HOST); // set
+			System.setProperty("http.proxyHost", CONFIG.PROXY_HOST); // set
+																		// proxy
+																		// server
+			System.setProperty("http.proxyPort", CONFIG.PROXY_PORT + ""); // set
 																			// proxy
-																			// server
-			System.setProperty("http.proxyPort", DEBUG_CONFIG.PROXY_PORT + ""); // set
-																				// proxy
-																				// port
-			System.setProperty("https.proxyHost", DEBUG_CONFIG.PROXY_HOST); // set
+																			// port
+			System.setProperty("https.proxyHost", CONFIG.PROXY_HOST); // set
+																		// proxy
+																		// server
+			System.setProperty("https.proxyPort", CONFIG.PROXY_PORT + ""); // set
 																			// proxy
-																			// server
-			System.setProperty("https.proxyPort", DEBUG_CONFIG.PROXY_PORT + ""); // set
-																					// proxy
-																					// port
+																			// port
+		}
+	}
+
+	public static void checkUpdates() {
+		Document d;
+		try {
+			d = Jsoup.connect(UPDATE_SITE).get();
+		} catch (IOException e) {
+			logger.log(Level.WARNING, "Could not connect to update site", e);
+			return;
+			
+		}
+		Elements s = d.select(".caption");
+		if (s.size() > 0) {
+			String version = s.first().text().trim();
+			if(!version.equals(CURRENT_VERSION)){
+				JOptionPane.showMessageDialog(null, "A new version of Tyanide is availible. Please go to http://sunnylan.tk/tyanide to download it", "Update availible",
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		} else {
+			logger.log(Level.WARNING, "Unable to parse website");
 		}
 	}
 }

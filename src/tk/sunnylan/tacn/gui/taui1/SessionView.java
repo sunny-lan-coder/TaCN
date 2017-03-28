@@ -63,8 +63,7 @@ public class SessionView extends Scene {
 	private StackPane emptySubjectsPane;
 
 	// AI YA CUSTY
-	public static SessionView createSessionView(ProfileLoadInfo p, TAUI1 context) throws IOException
-			 {
+	public static SessionView createSessionView(ProfileLoadInfo p, TAUI1 context) throws IOException {
 		FXMLLoader mahLoader = new FXMLLoader(TAUI1.class.getResource("MainInterface.fxml"));
 
 		SessionView view;
@@ -78,8 +77,7 @@ public class SessionView extends Scene {
 		return view;
 	}
 
-	private SessionView(ProfileLoadInfo profile, Parent par, SessionViewController controller, TAUI1 context)
-			 {
+	private SessionView(ProfileLoadInfo profile, Parent par, SessionViewController controller, TAUI1 context) {
 		super(par);
 		this.context = context;
 		this.profile = profile;
@@ -129,11 +127,13 @@ public class SessionView extends Scene {
 					controller.txtSessionName.setText(profile.profileName);
 					return;
 				}
+
+				String oldProfileName = profile.profileName;
 				profile.profileName = controller.txtSessionName.getText();
 				controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
 
+				context.reloadProfileLink(oldProfileName);
 				context.saveProfiles();
-
 				this.getRoot().requestFocus();
 			}
 
@@ -176,6 +176,10 @@ public class SessionView extends Scene {
 			this.getRoot().requestFocus();
 		});
 
+		if (profile.password == null || profile.username == null) {
+			controller.radioStoreCreds.setDisable(true);
+		}
+
 		controller.contentPane.getChildren().add(new Label("No subject selected"));
 		this.getRoot().requestFocus();
 	}
@@ -183,8 +187,9 @@ public class SessionView extends Scene {
 	private void setSaveCredentials() {
 		// if(profile.hasPassword && profile.hasUsername)
 		// return;
-		if (profile.password == null && profile.username == null)
+		if (profile.password == null || profile.username == null) {
 			return;
+		}
 		profile.hasPassword = profile.hasUsername = true;
 
 		context.saveProfiles();
@@ -206,7 +211,7 @@ public class SessionView extends Scene {
 		if (SystemTray.isSupported())
 			tray = SystemTray.getSystemTray();
 		else {
-			System.err.println("System tray not supported, not using notifications");
+			logger.log(Level.WARNING, "System tray not supported, not using notifications");
 			return;
 		}
 
@@ -228,6 +233,7 @@ public class SessionView extends Scene {
 		logger.info("Enabling cache");
 		if (!profile.isCached) {
 			// generate cache path
+			profile.isCached = true;
 			profile.cachepath = tk.sunnylan.tacn.parse.htmlunit.Util.sanitizeFileName(profile.profileName) + "\\";
 			while (Files.exists(Paths.get(context.cachepath + profile.cachepath)))
 				profile.cachepath += Util.genRandomProfileName(10);
@@ -238,6 +244,8 @@ public class SessionView extends Scene {
 		context.saveProfiles();
 		loadCache();
 
+		if (profile.password!=null && profile.username!=null)
+			controller.radioStoreCreds.setDisable(false);
 		controller.radioStoreOffline.setSelected(true);
 	}
 
@@ -250,6 +258,8 @@ public class SessionView extends Scene {
 		}
 		context.saveProfiles();
 
+		controller.radioStoreCreds.setDisable(true);
+		controller.radioStoreCreds.setSelected(false);
 		controller.radioStoreOffline.setSelected(false);
 	}
 
@@ -270,6 +280,7 @@ public class SessionView extends Scene {
 		} catch (IOException e1) {
 			logger.log(Level.SEVERE, "Unable to write to cache", e1);
 		}
+		context.saveProfiles();
 	}
 
 	private void loadCache() {
@@ -418,10 +429,9 @@ public class SessionView extends Scene {
 							saveCache();
 						}
 					}
-				}catch(RuntimeException ex){
-					throw ex;
-				}
-				catch (Exception e) {
+				} catch (RuntimeException ex) {
+					logger.log(Level.WARNING, "Unhandled runtime exception occured in refresh thread", ex);
+				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Unable to get updates", e);
 				}
 			}

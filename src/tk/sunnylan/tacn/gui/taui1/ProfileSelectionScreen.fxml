@@ -25,7 +25,7 @@
                   </Label>
                   <VBox alignment="CENTER" fillWidth="false">
                      <children>
-                        <VBox fx:id="profileLinks" alignment="CENTER" fillWidth="false" prefWidth="200.0" spacing="5.0" />
+                        <VBox fx:id="profileLinks" alignment="CENTER" fillWidth="false" spacing="5.0" />
                         <Separator prefWidth="50.0">
                            <padding>
                               <Insets bottom="10.0" top="10.0" />

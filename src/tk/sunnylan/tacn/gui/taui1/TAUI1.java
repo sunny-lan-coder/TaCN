@@ -38,7 +38,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import tk.sunnylan.tacn.data.ProfileLoadInfo;
-import tk.sunnylan.tacn.tst.DEBUG_CONFIG;
+import tk.sunnylan.tacn.tst.CONFIG;
 import tk.sunnylan.tacn.webinterface.jsoup.TASession;
 
 public class TAUI1 extends Application {
@@ -96,6 +96,8 @@ public class TAUI1 extends Application {
 				public void successfulLogin(TASession loggedIn) {
 
 					String name = loggedIn.user + " - temporary session";
+					if (profiles.containsKey(name))
+						name += " - ID: " + Util.genRandomProfileName(3);
 					while (profiles.containsKey(name))
 						name += Util.genRandomProfileName(3);
 					ProfileLoadInfo p = new ProfileLoadInfo(name, false);
@@ -128,13 +130,14 @@ public class TAUI1 extends Application {
 		empty = new Label("No profiles");
 		empty.setWrapText(true);
 		empty.setPadding(new Insets(20, 0, 20, 0));
+		selectionController.profileLinks.getChildren().add(empty);
 
 		Platform.setImplicitExit(false);
 
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent event) {
-				if (DEBUG_CONFIG.DEBUG_MODE) {
+				if (CONFIG.DEBUG_MODE) {
 					System.exit(0);
 				} else if (keepopen) {
 					event.consume();
@@ -165,10 +168,10 @@ public class TAUI1 extends Application {
 		logger.info("Loading profiles");
 		profiles = new HashMap<>();
 		profileLinks = new HashMap<>();
-		selectionController.profileLinks.getChildren().clear();
+		if (profileLinks.size() > 0)
+			selectionController.profileLinks.getChildren().clear();
 		if (!Files.exists(Paths.get(cachepath + "profiles.xml"))) {
 			saveProfiles();
-			selectionController.profileLinks.getChildren().add(empty);
 			return;
 		}
 
@@ -178,18 +181,27 @@ public class TAUI1 extends Application {
 		Document doc = builder.parse(cachepath + "profiles.xml");
 		NodeList l = doc.getDocumentElement().getElementsByTagName("profile");
 
-		selectionController.profileLinks.getChildren().remove(empty);
 		for (int i = 0; i < l.getLength(); i++) {
 			Element e = (Element) l.item(i);
 			ProfileLoadInfo p = new ProfileLoadInfo(e);
 			profiles.put(p.profileName, p);
-			initProfileLink(p.profileName);
+			reloadProfileLink(p.profileName);
 		}
+
+		if (profileLinks.size() > 0)
+			selectionController.profileLinks.getChildren().remove(empty);
 	}
 
 	private HashMap<String, Hyperlink> profileLinks;
 
-	private void initProfileLink(String profileName) {
+	public void reloadProfileLink(String profileName) {
+		if(profileLinks.containsKey(profileName))
+		{
+			profileLinks.get(profileName).setText(profiles.get(profileName).profileName);
+			profileLinks.put(profiles.get(profileName).profileName, profileLinks.get(profileName));
+			profileLinks.remove(profileName);
+			return;
+		}
 		Hyperlink lnk = new Hyperlink(profileName);
 		lnk.setOnAction(e -> {
 			SessionView view;
@@ -207,7 +219,7 @@ public class TAUI1 extends Application {
 	}
 
 	public void saveProfiles() {
-		logger.info("saving profiles");
+		logger.info("Saving profiles");
 		PrintWriter writer;
 		try {
 			writer = new PrintWriter(cachepath + "profiles.xml");
@@ -276,7 +288,9 @@ public class TAUI1 extends Application {
 	public void addProfile(ProfileLoadInfo p) {
 		logger.info("Adding profile " + p.profileName);
 		profiles.put(p.profileName, p);
-		initProfileLink(p.profileName);
+		reloadProfileLink(p.profileName);
+		if (profileLinks.size() > 0)
+			selectionController.profileLinks.getChildren().remove(empty);
 	}
 
 	public void removeProfile(ProfileLoadInfo p) {
@@ -284,17 +298,20 @@ public class TAUI1 extends Application {
 		selectionController.profileLinks.getChildren().remove(profileLinks.get(p.profileName));
 		profileLinks.remove(p.profileName);
 		profiles.remove(p.profileName);
+		if (profileLinks.size() == 0)
+			selectionController.profileLinks.getChildren().add(empty);
 	}
 
 	public static void main(String[] args) {
-		DEBUG_CONFIG.initDebug();
+		CONFIG.initDebug();
+		CONFIG.checkUpdates();
 		try {
 			logger.info("Launching Tyanide...");
 			launch(args);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unhandled exception", e);
-			JOptionPane.showMessageDialog(null, "An error occured in Tyanide. Please send the file "
-					+ DEBUG_CONFIG.logpath + " to sunny.lan.coder@gmail.com. Thank you!", "Error",
+			JOptionPane.showMessageDialog(null, "An error occured in Tyanide. Please send the contents of "
+					+ CONFIG.logpath + " to sunny.lan.coder@gmail.com. Thank you!", "Error",
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}

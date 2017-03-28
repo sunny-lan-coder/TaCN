@@ -31,7 +31,7 @@ public class Parse {
 	static final int WEIGHTTABLE_WEIGHT_COL = 2;
 
 	public static String getCourseCode(Document page) {
-		return page.select("div.green_border_message.box > div > div > h2").first().text();
+		return page.select("div > h2").first().text();
 	}
 
 	public static boolean parseMark(Mark m, String text) {
