@@ -67,7 +67,7 @@ public class TAUI1 extends Application {
 	public void start(Stage primaryStage) throws Exception {
 
 		logger.info("Initializing UI...");
-		primaryStage.setTitle("Tyanide "+CONFIG.CURRENT_VERSION);
+		primaryStage.setTitle("Tyanide " + CONFIG.CURRENT_VERSION);
 		primaryStage.setHeight(180);
 		primaryStage.setWidth(240);
 		primaryStage.setMaximized(true);
@@ -290,8 +290,8 @@ public class TAUI1 extends Application {
 		logger.info("Adding profile " + p.profileName);
 		profiles.put(p.profileName, p);
 		reloadProfileLink(p.profileName);
-		
-			selectionController.profileLinks.getChildren().remove(empty);
+
+		selectionController.profileLinks.getChildren().remove(empty);
 	}
 
 	public void removeProfile(ProfileLoadInfo p) {
@@ -305,6 +305,12 @@ public class TAUI1 extends Application {
 
 	public static void main(String[] args) {
 		CONFIG.initDebug();
+		try {
+			Class.forName("com.sun.javafx.runtime.VersionInfo");
+			logger.info("JavaFX version: " + com.sun.javafx.runtime.VersionInfo.getRuntimeVersion());
+		} catch (ClassNotFoundException e) {
+			logger.log(Level.WARNING, "Unable to get JavaFX version", e);
+		}
 		CONFIG.checkUpdates();
 		try {
 			logger.info("Launching Tyanide...");

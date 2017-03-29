@@ -36,7 +36,7 @@ public class CONFIG {
 	private static final boolean LOG_FILTER_ON = true;
 	private static final String UPDATE_SITE = "http://sunnylan.tk/tyanide/version.html";
 	public static final String VERSION_MAJOR = "2";
-	public static final String VERSION_MINOR = "3";
+	public static final String VERSION_MINOR = "4";
 	public static final String VERSION_BUILD = "0";
 	public static final String CURRENT_VERSION = VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD;
 
@@ -102,7 +102,7 @@ public class CONFIG {
 			return;
 
 		}
-		Elements s = d.select(".caption");
+		Elements s = d.select("#version");
 		if (s.size() > 0) {
 			String version = s.first().text().trim();
 			String[] split = version.split("\\.");
