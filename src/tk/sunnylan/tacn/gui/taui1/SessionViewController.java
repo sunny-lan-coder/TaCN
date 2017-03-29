@@ -11,7 +11,6 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 public class SessionViewController {
 
@@ -54,17 +53,40 @@ public class SessionViewController {
 	public void initialize() {
 		courseDrawer.setSidePane(vboxDrawer);
 		burgerTask = new HamburgerBackArrowBasicTransition(hamOpenMenu);
-		burgerTask.setRate(1);
-		burgerTask.setDelay(Duration.seconds(0.5));
-		burgerTask.play();
+		 burgerTask.setRate(1.5);
+		// burgerTask.setDelay(Duration.seconds(0.1));
+		// burgerTask.play();
+		courseDrawer.setOnDrawerClosing(e -> {
+			burgerTask.setRate(-1.5);
+			burgerTask.play();
+		});
+
+		courseDrawer.setOnDrawerOpening(e -> {
+			burgerTask.setRate(1.5);
+			burgerTask.play();
+		});
+
+		courseDrawer.setOnDrawerClosed(e -> {
+			if (burgerTask.getRate() == -1.5)
+				return;
+			burgerTask.setRate(-1.5);
+			burgerTask.play();
+		});
+
+		courseDrawer.setOnDrawerOpened(e -> {
+			if (burgerTask.getRate() == 1.5)
+				return;
+			burgerTask.setRate(1.5);
+			burgerTask.play();
+		});
+
 		courseDrawer.open();
 	}
 
 	@FXML
 	void handleHamburgerClick(MouseEvent event) {
-		if (event.getEventType() == MouseEvent.MOUSE_PRESSED)
-			burgerTask.setRate(burgerTask.getRate() * -1);
-		burgerTask.play();
+		if (event.getEventType() != MouseEvent.MOUSE_PRESSED)
+			return;
 		if (courseDrawer.isShown()) {
 			courseDrawer.close();
 		} else {

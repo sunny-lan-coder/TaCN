@@ -139,7 +139,7 @@ public class CONFIG {
 				paths.forEach(filePath -> {
 					if (Files.isRegularFile(filePath)) {
 						if (filePath.getFileName().toString().startsWith("Tyanide")) {
-							if (filePath.getFileName().toString().substring("Tyanide".length())
+							if (!filePath.getFileName().toString().substring("Tyanide".length())
 									.equals(version + ".jar")) {
 								try {
 									Files.delete(filePath);
