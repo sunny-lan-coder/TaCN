@@ -110,4 +110,9 @@ public class LoginController {
 		txtPassword.clear();
 		loginListener.loginCancelled();
 	}
+	
+	public void clearCreds(){
+		txtPassword.clear();
+		txtStudentID.clear();
+	}
 }

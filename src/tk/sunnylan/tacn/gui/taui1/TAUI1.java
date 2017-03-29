@@ -67,7 +67,7 @@ public class TAUI1 extends Application {
 	public void start(Stage primaryStage) throws Exception {
 
 		logger.info("Initializing UI...");
-		primaryStage.setTitle("Tyanide");
+		primaryStage.setTitle("Tyanide "+CONFIG.CURRENT_VERSION);
 		primaryStage.setHeight(180);
 		primaryStage.setWidth(240);
 		primaryStage.setMaximized(true);

@@ -131,10 +131,10 @@ public class SessionView extends Scene {
 				String oldProfileName = profile.profileName;
 				profile.profileName = controller.txtSessionName.getText();
 				controller.txtSessionName.setPrefWidth(controller.txtSessionName.getText().length() * 7);
-if(profile.isCached){
-				context.reloadProfileLink(oldProfileName);
-				context.saveProfiles();
-}
+				if (profile.isCached) {
+					context.reloadProfileLink(oldProfileName);
+					context.saveProfiles();
+				}
 				this.getRoot().requestFocus();
 			}
 
@@ -245,7 +245,7 @@ if(profile.isCached){
 		context.saveProfiles();
 		loadCache();
 
-		if (profile.isCached && profile.password!=null && profile.username!=null)
+		if (profile.isCached && profile.password != null && profile.username != null)
 			controller.radioStoreCreds.setDisable(false);
 		controller.radioStoreOffline.setSelected(true);
 	}
@@ -324,13 +324,13 @@ if(profile.isCached){
 		}
 	}
 
-	public void trySync() {
+	public synchronized void trySync() {
 		controller.radioSync.setDisable(true);
 		if (tasession != null) {
 			profile.username = tasession.user;
 			profile.password = tasession.pass;
-			if(profile.isCached)
-			controller.radioStoreCreds.setDisable(false);
+			if (profile.isCached)
+				controller.radioStoreCreds.setDisable(false);
 			startSync();
 			return;
 		}
@@ -346,8 +346,8 @@ if(profile.isCached){
 					stopSync();
 				}
 				Platform.runLater(() -> {
-					if(profile.isCached)
-					controller.radioStoreCreds.setDisable(false);
+					if (profile.isCached)
+						controller.radioStoreCreds.setDisable(false);
 					context.hideLoadingScreen();
 				});
 			}).start();
@@ -362,8 +362,8 @@ if(profile.isCached){
 
 				profile.username = tasession.user;
 				profile.password = tasession.pass;
-				if(profile.isCached)
-				controller.radioStoreCreds.setDisable(false);
+				if (profile.isCached)
+					controller.radioStoreCreds.setDisable(false);
 				startSync();
 			}
 
@@ -382,7 +382,7 @@ if(profile.isCached){
 		});
 	}
 
-	private void startSync() {
+	private synchronized void startSync() {
 		profile.isSynced = true;
 
 		initNotifications();
@@ -397,9 +397,10 @@ if(profile.isCached){
 			controller.radioSync.setSelected(true);
 			this.getRoot().requestFocus();
 		});
+
 	}
 
-	private void stopSync() {
+	private synchronized void stopSync() {
 		profile.isSynced = false;
 		context.saveProfiles();
 
@@ -426,7 +427,7 @@ if(profile.isCached){
 						Platform.runLater(() -> {
 							refresh(u);
 						});
-						if (context.icon != null){
+						if (context.icon != null) {
 							context.icon.displayMessage(Util.summarizeUpdatesShort(u), Util.summarizeUpdates(u),
 									MessageType.INFO);
 						}

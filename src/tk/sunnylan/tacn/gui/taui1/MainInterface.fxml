@@ -45,7 +45,7 @@
 										<StackPane fx:id="stackMenuItems" />
 										<VBox spacing="10.0">
 											<children>
-												<JFXRadioButton fx:id="radioStoreOffline" contentDisplay="CENTER" text="Store offline" textAlignment="CENTER">
+												<JFXRadioButton fx:id="radioStoreOffline" contentDisplay="CENTER" text="Keep session" textAlignment="CENTER">
 													<padding>
 														<Insets right="15.0" />
 													</padding>
@@ -56,7 +56,7 @@
 													</padding>
 												</JFXRadioButton>
 												<JFXRadioButton fx:id="radioStoreCreds" disable="true" text="Remember credentials" />
-                                    <Hyperlink fx:id="lnkCloseSession" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Close session" textAlignment="CENTER" />
+                                    <Hyperlink fx:id="lnkCloseSession" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" prefHeight="40.0" style="-fx-background-color: #ff6b51;" text="Close session" textAlignment="CENTER" textFill="WHITE" />
 											</children>
 										</VBox>
 									</children>

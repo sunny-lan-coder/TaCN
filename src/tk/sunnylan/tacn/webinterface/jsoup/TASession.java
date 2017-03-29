@@ -66,6 +66,8 @@ public class TASession {
 		String loc = r.header("location");
 		if (loc.contains(ERROR_KEYWORD)) {
 			String errId = loc.substring(loc.indexOf(ERROR_KEYWORD));
+			logger.log(Level.WARNING, "Error logging in. Requesting logout.php");
+			logout();
 			if (errId.equals(ERR_INVALID))
 				throw new Exception("Invalid login");
 			throw new Exception("Unidentified exception - error code " + errId);
