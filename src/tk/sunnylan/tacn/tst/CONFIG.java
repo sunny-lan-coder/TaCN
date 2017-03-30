@@ -34,10 +34,12 @@ public class CONFIG {
 	public static final int PROXY_PORT = 8888;
 	private static final Level LOG_LEVEL = Level.ALL;
 	private static final boolean LOG_FILTER_ON = true;
-	private static final String UPDATE_SITE = "http://sunnylan.tk/tyanide/version.html";
+	private static final String SITE_ROOT="http://sunnylan.tk/tyanide/";
+	private static final String VERSION_SITE = SITE_ROOT+"version.php";
+	private static final String UPDATE_SITE = SITE_ROOT+"Tyanide.jar";
 	public static final String VERSION_MAJOR = "2";
 	public static final String VERSION_MINOR = "4";
-	public static final String VERSION_BUILD = "0";
+	public static final String VERSION_BUILD = "1";
 	public static final String CURRENT_VERSION = VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_BUILD;
 
 	public static void initDebug() {
@@ -96,7 +98,7 @@ public class CONFIG {
 		logger.log(Level.INFO, "Checking for updates");
 		Document d;
 		try {
-			d = Jsoup.connect(UPDATE_SITE).get();
+			d = Jsoup.connect(VERSION_SITE).get();
 		} catch (IOException e) {
 			logger.log(Level.WARNING, "Could not connect to update site", e);
 			return;
@@ -135,6 +137,7 @@ public class CONFIG {
 					return;
 				}
 			}
+			logger.info("Deleting old version(s)...");
 			try (Stream<Path> paths = Files.walk(Paths.get(root))) {
 				paths.forEach(filePath -> {
 					if (Files.isRegularFile(filePath)) {
@@ -159,7 +162,7 @@ public class CONFIG {
 	}
 
 	private static void downloadUpdates(String version) throws IOException {
-		URL website = new URL("http://sunnylan.tk/tyanide/Tyanide.jar");
+		URL website = new URL(UPDATE_SITE);
 		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 		FileOutputStream fos = new FileOutputStream(root + "Tyanide" + version + ".jar");
 		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
